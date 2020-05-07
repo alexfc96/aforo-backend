@@ -73,6 +73,7 @@
 ## Models
 
   Company
+
     -Name: String (unique)
     -Description: String
     -Establishments: Ver si esto da para otro modelo(englobar varias sucursales de una sola compañia para que esta tenga control sobre todas )-> Backlog?
@@ -80,6 +81,7 @@
     -Workers?
 
   Establishment
+
     -IDEstablishment
     -Capacity: Number
     -Address: String / Mapbox
@@ -87,6 +89,7 @@
     -Users: Array o object?  **Add the IDusers invited by the company
 
   User
+
     -Name: String
     -Username: String (unique)
     -HashedPassword:
@@ -96,6 +99,7 @@
     -Companies: IDCompany (the user can be linked in more than 1 company)
 
   Booking
+  
     -IDEstablishment
     -IDUser
     -EndDate
