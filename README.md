@@ -77,8 +77,7 @@
     -Name: String (unique)
     -Description: String
     -Establishments: Ver si esto da para otro modelo(englobar varias sucursales de una sola compañia para que esta tenga control sobre todas )-> Backlog?
-    -Clients: Array with tbe IDusers invited by the company
-    -Workers?
+    -Owner: IDUser Array of owners of the company
 
   Establishment
 
@@ -86,7 +85,8 @@
     -Capacity: Number
     -Address: String / Mapbox
     -Timetable: Date
-    -Users: Array o object?  **Add the IDusers invited by the company
+    -Owner: IDUser Array of owners of the company
+    -Clients: Array with tbe IDusers invited by the company
 
   User
 
@@ -95,11 +95,11 @@
     -HashedPassword:
     -Years: Number
     -Mail: Mail
-    -Role: [Admin, user -> client]
-    -Companies: IDCompany (the user can be linked in more than 1 company)
+    -Role: [Admin, client]
+    //-Companies: IDCompany (the user can be linked in more than 1 company)
 
   Booking
-  
+
     -IDEstablishment
     -IDUser
     -EndDate
@@ -124,11 +124,11 @@
 ## Links
 
   **Git**
-  ​​ Repository
+  ​​ https://github.com/alexfc96/aforo-backend
   **Frontend Repo Git**
   
   **Trello**
-  ​ https://trello.com
+  ​ https://trello.com/b/TW4KSt9j/aforo
 
   ​**Deploy by Heroku**
 
