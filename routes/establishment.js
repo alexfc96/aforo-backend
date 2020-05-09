@@ -11,21 +11,23 @@ const router = express.Router();
 
 router.use(checkIfLoggedIn);
 
-//create a new Establishment
+// create a new Establishment
 router.post('/create', async (req, res, next) => {
   const IDowner = req.session.currentUser._id;
-  const { name, capacity, description, address, company, timetable } = req.body;
+  const {
+    name, capacity, description, address, company, timetable,
+  } = req.body;
 
   try {
     const owner = await User.findById(IDowner);
-    const findCompanyByName = await Company.findOne(  //buscamos la compañia que ha seleccionado el admin para vincular el establishment
+    const findCompanyByName = await Company.findOne( // buscamos la compañia que ha seleccionado el admin para vincular el establishment
       { name: company },
     );
     const companyID = findCompanyByName._id;
     const newEstablishment = await Establishment.create({
-      name, capacity, description, address, timetable, owners: owner, company: companyID, //tambien metemos el link a company (necesario?)
+      name, capacity, description, address, timetable, owners: owner, company: companyID, // tambien metemos el link a company (necesario?)
     });
-    const addEstablishmentToCompany = await Company.findOneAndUpdate(  //y vinculamos este establishment a la company 
+    const addEstablishmentToCompany = await Company.findOneAndUpdate( // y vinculamos este establishment a la company
       { _id: companyID }, { $push: { establishments: newEstablishment._id } },
     );
     return res.json(newEstablishment);
@@ -34,26 +36,26 @@ router.post('/create', async (req, res, next) => {
   }
 });
 
-//show the info of a Establishment
-router.get('/:_id', async(req, res, next) =>{
+// show the info of a Establishment
+router.get('/:_id', async (req, res, next) => {
   const idEstablishment = req.params;
   try {
     const showEstablishment = await (await Establishment.findById(idEstablishment));
-    //.populate('establishments');
+    // .populate('establishments');
     return res.json(showEstablishment);
   } catch (error) {
     console.log(error);
   }
 });
 
-//delete Establishment
-router.delete('/:_id', async(req, res, next) =>{
+// delete Establishment
+router.delete('/:_id', async (req, res, next) => {
   const idEstablishment = req.params;
   try {
     const deleteEstablishment = await Establishment.findByIdAndDelete(idEstablishment);
     const { _id: establishmentId, company } = deleteEstablishment;
     const deleteEstablishmentOfCompany = await Company.findOneAndUpdate(
-      { _id: company }, { $pull: { establishments: establishmentId }}
+      { _id: company }, { $pull: { establishments: establishmentId } },
     );
     return res.json(deleteEstablishment);
   } catch (error) {
@@ -61,24 +63,55 @@ router.delete('/:_id', async(req, res, next) =>{
   }
 });
 
-//book hour in establishment
-router.post('/:_id/booking', async(req, res, next) =>{  //cuidado con el orden de las rutas(si no tira)
+// join clients to establishment
+router.post('/:_id/join', async (req, res, next) => {
   const idEstablishment = req.params;
   const idUser = req.session.currentUser._id;
-  const { startTime, endingTime } = req.body;
   try {
-    const createBooking = await Booking.create({
-      idUser, idEstablishment, startTime, endingTime,
-    });
-    return res.json(createBooking);
+    const addClientToEstablishment = await Establishment.findOneAndUpdate(
+      { _id: idEstablishment }, { $push: { clients: idUser } },
+    );
+    return res.json(addClientToEstablishment);
   } catch (error) {
     console.log(error);
   }
-
 });
+
+// book hour in establishment
+router.post('/:_id/booking', async (req, res, next) => { // cuidado con el orden de las rutas(si no tira)
+  const idEstablishment = req.params;
+  const idUser = req.session.currentUser._id;
+  const { startTime, endingTime } = req.body;
+  const searchUser = await Establishment.findOne({ clients: idUser });
+  if (searchUser) { // restringir que solo los clientes y owners puedan hacer reservas
+    try {
+      const createBooking = await Booking.create({
+        idUser, idEstablishment, startTime, endingTime,
+      });
+      return res.json(createBooking);
+    } catch (error) {
+      console.log(error);
+    }
+  } else {
+    res.send('401');
+  }
+});
+
+// delete booking in establishment
+router.delete('/:_id/delete-booking', async (req, res, next) => { // cuidado con el orden de las rutas(si no tira)
+  const idBooking = req.params;
+  //const idUser = req.session.currentUser._id;
+  try {
+    const deleteBooking = await Booking.findOneAndDelete({ idBooking });
+    return res.json(deleteBooking);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 module.exports = router;
 
 
-  // res.status(200).json({
-  // 	demo: 'Welcome this route is protected',
-  // });
+// res.status(200).json({
+// 	demo: 'Welcome this route is protected',
+// });
