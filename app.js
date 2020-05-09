@@ -66,6 +66,11 @@ app.use('/protected', demoRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
+  res.status(401).json({ code: 'unauthorized' });
+});
+
+// catch 404 and forward to error handler
+app.use((req, res, next) => {
   res.status(404).json({ code: 'not found' });
 });
 

@@ -66,14 +66,13 @@ router.post('/:_id/booking', async(req, res, next) =>{  //cuidado con el orden d
   const idEstablishment = req.params;
   const idUser = req.session.currentUser._id;
   const { startTime, endingTime } = req.body;
-
   try {
     const createBooking = await Booking.create({
       idUser, idEstablishment, startTime, endingTime,
     });
     return res.json(createBooking);
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 
 });

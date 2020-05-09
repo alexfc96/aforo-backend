@@ -84,7 +84,12 @@
     -IDEstablishment
     -Capacity: Number
     -Address: String / Mapbox
-    -Timetable: Date
+    -Timetable: {
+      startHourShift: { type: Number, required: true },
+      finalHourShift: { type: Number, required: true },
+      timeAllowedPerBooking: { type: Number, required: true },
+    }
+    -Company??
     -Owner: IDUser Array of owners of the company
     -Clients: Array with tbe IDusers invited by the company
 
