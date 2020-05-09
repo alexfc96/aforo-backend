@@ -65,14 +65,37 @@ router.delete('/:idEstablishment', async (req, res, next) => {
 });
 
 // join clients to establishment
-router.post('/:idEstablishment/join', async (req, res, next) => {
+router.post('/:idEstablishment/join-client', async (req, res, next) => {
   const { idEstablishment } = req.params;
   const idUser = req.session.currentUser._id;
   try {
-    const addClientToEstablishment = await Establishment.findOneAndUpdate(
-      { _id: idEstablishment }, { $push: { clients: idUser } },
-    );
-    return res.json(addClientToEstablishment);
+    const infoEstablishment = await Establishment.findById(idEstablishment);
+    if (!infoEstablishment.clients.includes(idUser)) {
+      const addClientToEstablishment = await Establishment.findOneAndUpdate(
+        { _id: idEstablishment }, { $push: { clients: idUser } },
+      );
+      return res.json(addClientToEstablishment);
+    }
+    return res.json('This user is already suscribed');
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+// join owner to establishment
+// pensar medidas de seguridad. X ejemplo que solo si eres owner de la company puedes pasar a seer owner de los stablishments? No me gusta.
+router.post('/:idEstablishment/join-owner', async (req, res, next) => {
+  const { idEstablishment } = req.params;
+  const idUser = req.session.currentUser._id;
+  try {
+    const infoEstablishment = await Establishment.findById(idEstablishment);
+    if (!infoEstablishment.owners.includes(idUser)) {
+      const addOwnerToEstablishment = await Establishment.findOneAndUpdate(
+        { _id: idEstablishment }, { $push: { owners: idUser } },
+      );
+      return res.json(addOwnerToEstablishment);
+    }
+    return res.json('This user is already owner');
   } catch (error) {
     console.log(error);
   }
@@ -84,7 +107,7 @@ router.post('/:idEstablishment/booking', checkIfTimeChosedByTheUserIsAllowed, ch
   const idUser = req.session.currentUser._id;
   const { startTime, endingTime } = req.body;
   const searchUser = await Establishment.findOne({
-    $or: [{ clients: idUser }, { owners: idUser }]
+    $or: [{ clients: idUser }, { owners: idUser }],
   });
   if (searchUser) { // restringir que solo los clientes y owners puedan hacer reservas
     try {
@@ -100,8 +123,8 @@ router.post('/:idEstablishment/booking', checkIfTimeChosedByTheUserIsAllowed, ch
   }
 });
 
-//show info about one booking
-router.get('/:idEstablishment/booking/:idBooking', async(req, res, next) => {
+// show info about one booking
+router.get('/:idEstablishment/booking/:idBooking', async (req, res, next) => {
   const { idBooking } = req.params;
   try {
     const showBooking = await Booking.findById(idBooking);
@@ -114,7 +137,7 @@ router.get('/:idEstablishment/booking/:idBooking', async(req, res, next) => {
 // delete booking in establishment
 router.delete('/:idEstablishment/delete-booking/:idBooking', async (req, res, next) => { // cuidado con el orden de las rutas(si no tira)
   const { idBooking } = req.params;
-  //const idUser = req.session.currentUser._id;
+  // const idUser = req.session.currentUser._id;
   try {
     const deleteBooking = await Booking.findByIdAndDelete(idBooking);
     return res.json(deleteBooking);
