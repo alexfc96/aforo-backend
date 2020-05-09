@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 const express = require('express');
-const { checkIfLoggedIn, checkIfHourIsAllowed } = require('../middlewares');
+const { checkIfLoggedIn, checkIfHourIsAllowed, checkIfTimeChosedByTheUserIsAllowed } = require('../middlewares');
 
 const User = require('../models/User');
 const Company = require('../models/Company');
@@ -79,7 +79,7 @@ router.post('/:idEstablishment/join', async (req, res, next) => {
 });
 
 // book hour in establishment
-router.post('/:idEstablishment/booking', checkIfHourIsAllowed, async (req, res, next) => { // cuidado con el orden de las rutas(si no tira)
+router.post('/:idEstablishment/booking', checkIfTimeChosedByTheUserIsAllowed, checkIfHourIsAllowed, async (req, res, next) => { // cuidado con el orden de las rutas(si no tira)
   const { idEstablishment } = req.params;
   const idUser = req.session.currentUser._id;
   const { startTime, endingTime } = req.body;
@@ -100,12 +100,23 @@ router.post('/:idEstablishment/booking', checkIfHourIsAllowed, async (req, res, 
   }
 });
 
+//show info about one booking
+router.get('/:idEstablishment/booking/:idBooking', async(req, res, next) => {
+  const { idBooking } = req.params;
+  try {
+    const showBooking = await Booking.findById(idBooking);
+    return res.json(showBooking);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 // delete booking in establishment
-router.delete('/:idEstablishment/delete-booking', async (req, res, next) => { // cuidado con el orden de las rutas(si no tira)
+router.delete('/:idEstablishment/delete-booking/:idBooking', async (req, res, next) => { // cuidado con el orden de las rutas(si no tira)
   const { idBooking } = req.params;
   //const idUser = req.session.currentUser._id;
   try {
-    const deleteBooking = await Booking.findOneAndDelete({ idBooking });
+    const deleteBooking = await Booking.findByIdAndDelete(idBooking);
     return res.json(deleteBooking);
   } catch (error) {
     console.log(error);
