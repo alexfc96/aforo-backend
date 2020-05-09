@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 const express = require('express');
-const { checkIfLoggedIn, checkIfHourIsAllowed, checkIfTimeChosedByTheUserIsAllowed } = require('../middlewares');
+const { checkIfLoggedIn, checkIfHourIsAllowed, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment } = require('../middlewares');
 
 const User = require('../models/User');
 const Company = require('../models/Company');
@@ -49,7 +49,7 @@ router.get('/:idEstablishment', async (req, res, next) => {
 });
 
 // delete Establishment, this also delete all the bookings vinculated to the establishment
-router.delete('/:idEstablishment', async (req, res, next) => {
+router.delete('/:idEstablishment', checkIfUserIsOwnerEstablishment, async (req, res, next) => {
   const { idEstablishment } = req.params;
   try {
     const deleteEstablishment = await Establishment.findByIdAndDelete(idEstablishment);
@@ -57,7 +57,9 @@ router.delete('/:idEstablishment', async (req, res, next) => {
     const deleteEstablishmentOfCompany = await Company.findOneAndUpdate(
       { _id: company }, { $pull: { establishments: establishmentId } },
     );
-    const deleteBookingsOfEstablishment = await Booking.deleteMany({ idEstablishment: establishmentId });
+    const deleteBookingsOfEstablishment = await Booking.deleteMany(
+      { idEstablishment: establishmentId },
+    );
     return res.json(deleteEstablishment);
   } catch (error) {
     console.log(error);

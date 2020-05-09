@@ -1,4 +1,5 @@
 const Establishment = require('../models/Establishment');
+const Company = require('../models/Company');
 
 const checkIfLoggedIn = (req, res, next) => {
   if (req.session.currentUser) {
@@ -39,6 +40,37 @@ const checkIfHourIsAllowed = async (req, res, next) => {
   }
 };
 
+//Como aprovechar esto para establishment y no tener que hacer 2 diferentes?
+//control for allow delete companay only for the owners
+const checkIfUserIsOwner = async (req, res, next) => {
+  const IDuser = req.session.currentUser._id;
+  const { idCompany } = req.params;
+  try {
+    const infoCompany = await Company.findById(idCompany);
+    if (infoCompany.owners.includes(IDuser)) {
+      next();
+    }
+    return res.json('Unauthorized');
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+//control for allow delete establishments only for the owners
+const checkIfUserIsOwnerEstablishment = async (req, res, next) => {
+  const IDuser = req.session.currentUser._id;
+  const { idEstablishment } = req.params;
+  try {
+    const infoEstablishment = await Establishment.findById(idEstablishment);
+    if (infoEstablishment.owners.includes(IDuser)) {
+      next();
+    }
+    return res.json('Unauthorized');
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 // cuando tenga el front y me pasen las horas ya haremos:
 const checkIfTimeChosedByTheUserIsAllowed = async (req, res, next) => {
   const { startTime, endingTime } = req.body;
@@ -62,4 +94,6 @@ module.exports = {
   checkIfHourIsAllowed,
   checkIfTimeChosedByTheUserIsAllowed,
   checkUsernameAndPasswordNotEmpty,
+  checkIfUserIsOwner,
+  checkIfUserIsOwnerEstablishment,
 };

@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 const express = require('express');
-const { checkIfLoggedIn } = require('../middlewares');
+const { checkIfLoggedIn, checkIfUserIsOwner } = require('../middlewares');
 
 const User = require('../models/User');
 const Establishment = require('../models/Establishment');
@@ -27,24 +27,38 @@ router.post('/create', async (req, res, next) => {
   }
 });
 
-
 // show the info of a company
-router.get('/:_id', async (req, res, next) => {
-  const idcompany = req.params;
+router.get('/:idCompany', async (req, res, next) => {
+  const { idCompany } = req.params;
+  console.log(req.params);
   try {
-    const showCompany = await Company.findById(idcompany);
+    const showCompany = await Company.findById(idCompany);
     return res.json(showCompany);
   } catch (error) {
     console.log(error);
   }
 });
 
-// delete company, this also delete the establishments vinculated, and this also delete the bookings of this establishments
-router.delete('/:_id', async (req, res, next) => {
-  const idcompany = req.params;
+//admin data company
+router.put('/:idCompany/admin', async (req, res, next) => {
+  const { idCompany } = req.params;
+  const { name, description } = req.body;
   try {
-    const deleteCompany = await Company.findByIdAndDelete(idcompany);
-    const deleteEstablishments = await Establishment.deleteMany({ company: idcompany });
+    const modifyCompany = await Company.findByIdAndUpdate(
+      { idCompany }, { name, description },
+    );
+    return res.json(modifyCompany);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+// delete company, this also delete the establishments vinculated, and this also delete the bookings of this establishments
+router.delete('/:idCompany', checkIfUserIsOwner, async (req, res, next) => {
+  const { idCompany } = req.params;
+  try {
+    const deleteCompany = await Company.findByIdAndDelete(idCompany);
+    const deleteEstablishments = await Establishment.deleteMany({ company: idCompany });
     const deleteBookings = await Booking.deleteMany({
       idEstablishment: { $in: [deleteCompany.establishments] },
     });
