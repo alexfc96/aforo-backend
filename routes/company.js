@@ -45,9 +45,7 @@ router.delete('/:_id', async (req, res, next) => {
   try {
     const deleteCompany = await Company.findByIdAndDelete(idcompany);
     const deleteEstablishments = await Establishment.deleteMany({ company: idcompany });
-    deleteCompany.establishments.forEach(async (establishment) => {  //foreach no devuelve promise por lo que hay que llamar al async para poder utilizarlo
-      await Booking.deleteMany({ idEstablishment: establishment });
-    });
+    const deleteBookings = await Booking.deleteMany({ idEstablishment: { $in: [deleteCompany.establishments] } });
     return res.json(deleteCompany);
   } catch (error) {
     console.log(error);
