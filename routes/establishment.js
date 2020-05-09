@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 const express = require('express');
-const { checkIfLoggedIn } = require('../middlewares');
+const { checkIfLoggedIn, checkIfHourIsAllowed } = require('../middlewares');
 
 const User = require('../models/User');
 const Company = require('../models/Company');
@@ -37,10 +37,10 @@ router.post('/create', async (req, res, next) => {
 });
 
 // show the info of a Establishment
-router.get('/:_id', async (req, res, next) => {
-  const idEstablishment = req.params;
+router.get('/:idEstablishment', async (req, res, next) => {
+  const { idEstablishment } = req.params;
   try {
-    const showEstablishment = await (await Establishment.findById(idEstablishment));
+    const showEstablishment = await Establishment.findById(idEstablishment);
     // .populate('establishments');
     return res.json(showEstablishment);
   } catch (error) {
@@ -49,8 +49,8 @@ router.get('/:_id', async (req, res, next) => {
 });
 
 // delete Establishment, this also delete all the bookings vinculated to the establishment
-router.delete('/:_id', async (req, res, next) => {
-  const idEstablishment = req.params;
+router.delete('/:idEstablishment', async (req, res, next) => {
+  const { idEstablishment } = req.params;
   try {
     const deleteEstablishment = await Establishment.findByIdAndDelete(idEstablishment);
     const { _id: establishmentId, company } = deleteEstablishment;
@@ -65,8 +65,8 @@ router.delete('/:_id', async (req, res, next) => {
 });
 
 // join clients to establishment
-router.post('/:_id/join', async (req, res, next) => {
-  const idEstablishment = req.params;
+router.post('/:idEstablishment/join', async (req, res, next) => {
+  const { idEstablishment } = req.params;
   const idUser = req.session.currentUser._id;
   try {
     const addClientToEstablishment = await Establishment.findOneAndUpdate(
@@ -79,8 +79,8 @@ router.post('/:_id/join', async (req, res, next) => {
 });
 
 // book hour in establishment
-router.post('/:_id/booking', async (req, res, next) => { // cuidado con el orden de las rutas(si no tira)
-  const idEstablishment = req.params;
+router.post('/:idEstablishment/booking', checkIfHourIsAllowed, async (req, res, next) => { // cuidado con el orden de las rutas(si no tira)
+  const { idEstablishment } = req.params;
   const idUser = req.session.currentUser._id;
   const { startTime, endingTime } = req.body;
   const searchUser = await Establishment.findOne({
@@ -101,8 +101,8 @@ router.post('/:_id/booking', async (req, res, next) => { // cuidado con el orden
 });
 
 // delete booking in establishment
-router.delete('/:_id/delete-booking', async (req, res, next) => { // cuidado con el orden de las rutas(si no tira)
-  const idBooking = req.params;
+router.delete('/:idEstablishment/delete-booking', async (req, res, next) => { // cuidado con el orden de las rutas(si no tira)
+  const { idBooking } = req.params;
   //const idUser = req.session.currentUser._id;
   try {
     const deleteBooking = await Booking.findOneAndDelete({ idBooking });
