@@ -82,7 +82,9 @@ router.post('/:_id/booking', async (req, res, next) => { // cuidado con el orden
   const idEstablishment = req.params;
   const idUser = req.session.currentUser._id;
   const { startTime, endingTime } = req.body;
-  const searchUser = await Establishment.findOne({ clients: idUser });
+  const searchUser = await Establishment.findOne({
+    $or: [{ clients: idUser }, { owners: idUser }]
+  });
   if (searchUser) { // restringir que solo los clientes y owners puedan hacer reservas
     try {
       const createBooking = await Booking.create({
