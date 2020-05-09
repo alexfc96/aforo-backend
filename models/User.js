@@ -9,7 +9,7 @@ const userSchema = new Schema(
     hashedPassword: { type: String, required: true },
     mail: { type: String, required: true, unique: true },
     years: Number,
-    role: ['Admin', 'client'],
+    //role: ['Admin', 'client'],
   },
   {
     timestamps: {

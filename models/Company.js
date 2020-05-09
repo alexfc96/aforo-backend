@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 
 const companySchema = new Schema(
   {
-    name: { type: String, required: true },
+    name: { type: String, required: true, unique: true },
     description: String,
     owners: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     establishments: [{ type: Schema.Types.ObjectId, ref: 'Establishment' }],
