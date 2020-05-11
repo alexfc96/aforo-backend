@@ -64,6 +64,9 @@ router.post('/:idCompany/join-owner', async (req, res, next) => {
       const addOwnerToCompany = await Company.findOneAndUpdate(
         { _id: idCompany }, { $push: { owners: idUser } },
       );
+      const joinNewOwnerToEstablishments = await Establishment.updateMany(
+        { _id: { $in: [infoCompany.establishments] } }, { $push: { owners: idUser } },
+      );
       return res.json(addOwnerToCompany);
     }
     return res.json('This user is already owner');
