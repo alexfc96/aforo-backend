@@ -1,6 +1,9 @@
 /* eslint-disable no-underscore-dangle */
 const express = require('express');
-const { checkIfLoggedIn, checkIfHourIsAllowed, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment, checkIfUserIsOwnerOfCompanyForCreateEstablishments } = require('../middlewares');
+const { checkIfLoggedIn } = require('../middlewares/midAuth');
+const {
+  checkIfHourIsAllowed, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment, checkIfUserIsOwnerOfCompanyForCreateEstablishments,
+} = require('../middlewares/midEstablishment');
 
 const User = require('../models/User');
 const Company = require('../models/Company');
@@ -13,9 +16,9 @@ router.use(checkIfLoggedIn);
 
 // create a new Establishment
 router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, async (req, res, next) => {
-
-  const { name, capacity, description, address, company, timetable } = req.body;
-
+  const {
+    name, capacity, description, address, company, timetable,
+  } = req.body;
   try {
     const { _id: companyID, owners } = res.locals.dataCompany;
     const newEstablishment = await Establishment.create({

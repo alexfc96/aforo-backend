@@ -1,6 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 const express = require('express');
-const { checkIfLoggedIn, checkIfUserIsOwner } = require('../middlewares');
+const { checkIfLoggedIn } = require('../middlewares/midAuth');
+const { checkIfUserIsOwner } = require('../middlewares/midCompany');
 
 const User = require('../models/User');
 const Establishment = require('../models/Establishment');
