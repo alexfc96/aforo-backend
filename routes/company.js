@@ -76,6 +76,25 @@ router.post('/:idCompany/join-owner/:idOwner', async (req, res, next) => {
   }
 });
 
+// remove owner of Company
+// esto no hace que borre el owner de los establishments. pensarlo bien.
+router.delete('/:idCompany/remove-owner/:idOwner', checkIfUserIsOwner, async (req, res, next) => {
+  const { idCompany, idOwner } = req.params;
+  try {
+    const infoCompany = await Company.findById(idCompany);
+    if (infoCompany.owners.includes(idOwner)) {
+      const removeownerOfCompany = await Company.findOneAndUpdate(
+        { _id: idCompany }, { $pull: { owners: idOwner } },
+      );
+      const deleteBookingsOfOwner = await Booking.deleteMany({ idUser: idOwner });
+      return res.json(removeownerOfCompany);
+    }
+    return res.json('This user is not owner of this Company');
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 // delete company, this also delete the establishments vinculated, and this also delete the bookings of this establishments
 router.delete('/:idCompany', checkIfUserIsOwner, async (req, res, next) => {
   const { idCompany } = req.params;

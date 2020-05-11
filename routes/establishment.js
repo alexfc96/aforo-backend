@@ -65,7 +65,6 @@ router.delete('/:idEstablishment', checkIfUserIsOwnerEstablishment, async (req, 
 // join clients to establishment
 router.post('/:idEstablishment/join-client/:idClient', checkIfUserIsOwnerEstablishment, async (req, res, next) => {
   const { idEstablishment, idClient } = req.params;
-  // const idUser = req.session.currentUser._id;
   try {
     const infoEstablishment = await Establishment.findById(idEstablishment);
     if (!infoEstablishment.clients.includes(idClient)) {
@@ -84,7 +83,6 @@ router.post('/:idEstablishment/join-client/:idClient', checkIfUserIsOwnerEstabli
 router.delete('/:idEstablishment/remove-client/:idClient', checkIfUserIsOwnerEstablishment, async (req, res, next) => {   //creo que aquí hará falta poner otra query con el id del cliente que queremos tratar.
   const { idEstablishment, idClient } = req.params;
   console.log(req.params);
-  //const idUser = req.session.currentUser._id;
   try {
     const infoEstablishment = await Establishment.findById(idEstablishment);
     if (infoEstablishment.clients.includes(idClient)) {
@@ -105,7 +103,6 @@ router.delete('/:idEstablishment/remove-client/:idClient', checkIfUserIsOwnerEst
 router.post('/:idEstablishment/join-owner/:idOwner', checkIfUserIsOwnerOfCompany, async (req, res, next) => {
   const { idEstablishment, idOwner } = req.params;
   console.log(req.params)
-  // const idUser = req.session.currentUser._id;
   try {
     const infoEstablishment = await Establishment.findById(idEstablishment);
     if (!infoEstablishment.owners.includes(idOwner)) {
@@ -115,6 +112,24 @@ router.post('/:idEstablishment/join-owner/:idOwner', checkIfUserIsOwnerOfCompany
       return res.json(addOwnerToEstablishment);
     }
     return res.json('This user is already owner');
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+// remove owner of establishment
+router.delete('/:idEstablishment/remove-owner/:idowner', checkIfUserIsOwnerOfCompany, async (req, res, next) => {
+  const { idEstablishment, idowner } = req.params;
+  try {
+    const infoEstablishment = await Establishment.findById(idEstablishment);
+    if (infoEstablishment.owners.includes(idowner)) {
+      const removeownerOfEstablishment = await Establishment.findOneAndUpdate(
+        { _id: idEstablishment }, { $pull: { owners: idowner } },
+      );
+      const deleteBookingsOfOwners = await Booking.deleteMany({ idUser: idowner });
+      return res.json(removeownerOfEstablishment);
+    }
+    return res.json('This user is not owner of this establishment');
   } catch (error) {
     console.log(error);
   }
