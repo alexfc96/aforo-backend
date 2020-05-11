@@ -42,7 +42,7 @@ const checkIfTimeChosedByTheUserIsAllowed = async (req, res, next) => {
 
 // Como aprovechar esto para establishment y no tener que hacer 2 diferentes?
 // control for allow delete companay only for the owners
-const checkIfUserIsOwnerOfCompanyForCreateEstablishments = async (req, res, next) => {
+const checkIfUserIsOwnerOfCompany = async (req, res, next) => {
   const IDuser = req.session.currentUser._id;
   const { company } = req.body;
   try {
@@ -80,7 +80,7 @@ const checkIfUserIsOwnerEstablishment = async (req, res, next) => {
 
 module.exports = {
   checkIfHourIsAllowed,
-  checkIfUserIsOwnerOfCompanyForCreateEstablishments,
+  checkIfUserIsOwnerOfCompany,
   checkIfTimeChosedByTheUserIsAllowed,
   checkIfUserIsOwnerEstablishment,
 };

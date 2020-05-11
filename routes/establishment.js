@@ -1,9 +1,8 @@
 /* eslint-disable no-underscore-dangle */
 const express = require('express');
 const { checkIfLoggedIn } = require('../middlewares/midAuth');
-const {
-  checkIfHourIsAllowed, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment, checkIfUserIsOwnerOfCompanyForCreateEstablishments,
-} = require('../middlewares/midEstablishment');
+const { checkIfUserIsOwnerOfCompany, } = require('../middlewares/midCompany');
+const { checkIfHourIsAllowed, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment } = require('../middlewares/midEstablishment');
 
 const User = require('../models/User');
 const Company = require('../models/Company');
@@ -15,7 +14,7 @@ const router = express.Router();
 router.use(checkIfLoggedIn);
 
 // create a new Establishment
-router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, async (req, res, next) => {
+router.post('/create', checkIfUserIsOwnerOfCompany, async (req, res, next) => {
   const {
     name, capacity, description, address, company, timetable,
   } = req.body;
@@ -64,14 +63,14 @@ router.delete('/:idEstablishment', checkIfUserIsOwnerEstablishment, async (req, 
 });
 
 // join clients to establishment
-router.post('/:idEstablishment/join-client', async (req, res, next) => {
-  const { idEstablishment } = req.params;
-  const idUser = req.session.currentUser._id;
+router.post('/:idEstablishment/join-client/:idClient', checkIfUserIsOwnerEstablishment, async (req, res, next) => {
+  const { idEstablishment, idClient } = req.params;
+  // const idUser = req.session.currentUser._id;
   try {
     const infoEstablishment = await Establishment.findById(idEstablishment);
-    if (!infoEstablishment.clients.includes(idUser)) {
+    if (!infoEstablishment.clients.includes(idClient)) {
       const addClientToEstablishment = await Establishment.findOneAndUpdate(
-        { _id: idEstablishment }, { $push: { clients: idUser } },
+        { _id: idEstablishment }, { $push: { clients: idClient } },
       );
       return res.json(addClientToEstablishment);
     }
@@ -81,16 +80,37 @@ router.post('/:idEstablishment/join-client', async (req, res, next) => {
   }
 });
 
-// join owner to establishment
-// pensar medidas de seguridad. X ejemplo que solo si eres owner de la company puedes pasar a seer owner de los stablishments? No me gusta.
-router.post('/:idEstablishment/join-owner', async (req, res, next) => {
-  const { idEstablishment } = req.params;
-  const idUser = req.session.currentUser._id;
+// remove clients of establishment
+router.delete('/:idEstablishment/remove-client/:idClient', checkIfUserIsOwnerEstablishment, async (req, res, next) => {   //creo que aquí hará falta poner otra query con el id del cliente que queremos tratar.
+  const { idEstablishment, idClient } = req.params;
+  console.log(req.params);
+  //const idUser = req.session.currentUser._id;
   try {
     const infoEstablishment = await Establishment.findById(idEstablishment);
-    if (!infoEstablishment.owners.includes(idUser)) {
+    if (infoEstablishment.clients.includes(idClient)) {
+      const removeClientOfEstablishment = await Establishment.findOneAndUpdate(
+        { _id: idEstablishment }, { $pull: { clients: idClient } },
+      );
+      const deleteBookingsOfClienteRemoved = await Booking.deleteMany({ idUser: idClient }); //Revisado que si no tiene bookings aquí no da error.
+      return res.json(removeClientOfEstablishment);
+    }
+    return res.json('This user is not client of this establishment');
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+// join owner to establishment
+// si eres owner de la company puedes invitar a owners para los stablishments
+router.post('/:idEstablishment/join-owner/:idOwner', checkIfUserIsOwnerOfCompany, async (req, res, next) => {
+  const { idEstablishment, idOwner } = req.params;
+  console.log(req.params)
+  // const idUser = req.session.currentUser._id;
+  try {
+    const infoEstablishment = await Establishment.findById(idEstablishment);
+    if (!infoEstablishment.owners.includes(idOwner)) {
       const addOwnerToEstablishment = await Establishment.findOneAndUpdate(
-        { _id: idEstablishment }, { $push: { owners: idUser } },
+        { _id: idEstablishment }, { $push: { owners: idOwner } },
       );
       return res.json(addOwnerToEstablishment);
     }
@@ -140,26 +160,6 @@ router.delete('/:idEstablishment/delete-booking/:idBooking', async (req, res, ne
   try {
     const deleteBooking = await Booking.findByIdAndDelete(idBooking);
     return res.json(deleteBooking);
-  } catch (error) {
-    console.log(error);
-  }
-});
-
-// remove clients of establishment
-router.delete('/:idEstablishment/remove-client/:idClient', checkIfUserIsOwnerEstablishment, async (req, res, next) => {   //creo que aquí hará falta poner otra query con el id del cliente que queremos tratar.
-  const { idEstablishment, idClient } = req.params;
-  console.log(req.params);
-  //const idUser = req.session.currentUser._id;
-  try {
-    const infoEstablishment = await Establishment.findById(idEstablishment);
-    if (infoEstablishment.clients.includes(idClient)) {
-      const removeClientOfEstablishment = await Establishment.findOneAndUpdate(
-        { _id: idEstablishment }, { $pull: { clients: idClient } },
-      );
-      const deleteBookingsOfClienteRemoved = await Booking.deleteMany({ idUser: idClient });
-      return res.json(removeClientOfEstablishment);
-    }
-    return res.json('This user is not client of this establishment');
   } catch (error) {
     console.log(error);
   }

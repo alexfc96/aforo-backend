@@ -1,5 +1,5 @@
 /* eslint-disable no-underscore-dangle */
-//const Establishment = require('../models/Establishment');
+const Establishment = require('../models/Establishment');
 const Company = require('../models/Company');
 
 // Como aprovechar esto para establishment y no tener que hacer 2 diferentes?
@@ -19,6 +19,24 @@ const checkIfUserIsOwner = async (req, res, next) => {
   }
 };
 
+// check if the user session is owner of the company
+const checkIfUserIsOwnerOfCompany = async (req, res, next) => {
+  const IDuser = req.session.currentUser._id;
+  const { idEstablishment } = req.params;
+  try {
+    const infoEstablishment = await Establishment.findById(idEstablishment);
+    const infoCompany = await Company.findById(infoEstablishment.company);
+    if (infoCompany.owners.includes(IDuser)) {
+      next();
+    } else {
+      return res.json('Unauthorized');
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 module.exports = {
   checkIfUserIsOwner,
+  checkIfUserIsOwnerOfCompany,
 };
