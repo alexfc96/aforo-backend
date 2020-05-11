@@ -56,17 +56,17 @@ router.put('/:idCompany/admin', async (req, res, next) => {
 
 // join owner to company
 //pensar medidas de seguridad
-router.post('/:idCompany/join-owner', async (req, res, next) => {
-  const { idCompany } = req.params;
-  const idUser = req.session.currentUser._id;
+router.post('/:idCompany/join-owner/:idOwner', async (req, res, next) => {
+  const { idCompany, idOwner } = req.params;
+  // const idOwner = req.session.currentUser._id;
   try {
     const infoCompany = await Company.findById(idCompany);
-    if (!infoCompany.owners.includes(idUser)) {
+    if (!infoCompany.owners.includes(idOwner)) {
       const addOwnerToCompany = await Company.findOneAndUpdate(
-        { _id: idCompany }, { $push: { owners: idUser } },
+        { _id: idCompany }, { $push: { owners: idOwner } },
       );
-      const joinNewOwnerToEstablishments = await Establishment.updateMany(
-        { _id: { $in: [infoCompany.establishments] } }, { $push: { owners: idUser } },
+      const setNewOwnerToEstablishments = await Establishment.updateMany(
+        { _id: { $in: [infoCompany.establishments] } }, { $push: { owners: idOwner } },
       );
       return res.json(addOwnerToCompany);
     }
