@@ -45,7 +45,7 @@ router.post('/login', checkUsernameAndPasswordNotEmpty, async (req, res, next) =
     }
     if (bcrypt.compareSync(password, user.hashedPassword)) {
       req.session.currentUser = user;
-      return res.json(user);
+      return res.json(user); //Esto no pasa el contenido. PORQUE?
     }
     return res.status(404).json({ code: 'not-found' });
   } catch (error) {

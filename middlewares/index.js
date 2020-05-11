@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 const Establishment = require('../models/Establishment');
 const Company = require('../models/Company');
 
@@ -27,7 +28,7 @@ const checkIfHourIsAllowed = async (req, res, next) => {
   try {
     const establishment = await Establishment.findById(idEstablishment);
     if (establishment) {
-      //console.log('OBJETO', establishment);
+      // console.log('OBJETO', establishment);
       if (startTime < establishment.timetable.startHourShift || endingTime > establishment.timetable.finalHourShift) {
         // res.locals.hours = req.body;
         next();
@@ -40,8 +41,30 @@ const checkIfHourIsAllowed = async (req, res, next) => {
   }
 };
 
-//Como aprovechar esto para establishment y no tener que hacer 2 diferentes?
-//control for allow delete companay only for the owners
+// Como aprovechar esto para establishment y no tener que hacer 2 diferentes?
+// control for allow delete companay only for the owners
+const checkIfUserIsOwnerOfCompanyForCreateEstablishments = async (req, res, next) => {
+  const IDuser = req.session.currentUser._id;
+  const { company } = req.body;
+  try {
+    const findCompanyByName = await Company.findOne( // buscamos la compañia que ha seleccionado el admin para vincular el establishment
+      { name: company },
+    );
+    const infoOfCompany = await Company.findById(findCompanyByName._id);
+    if (infoOfCompany.owners.includes(IDuser)) {
+      // console.log(infoOfCompany);
+      res.locals.dataCompany = infoOfCompany;
+      next();
+    } else {//si no pongo el else se muestra siempre el unauthorized. Porque? el next no es como un return?
+      return res.json('Unauthorized');
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+// Como aprovechar esto para establishment y no tener que hacer 2 diferentes?
+// control for allow delete companay only for the owners
 const checkIfUserIsOwner = async (req, res, next) => {
   const IDuser = req.session.currentUser._id;
   const { idCompany } = req.params;
@@ -49,14 +72,15 @@ const checkIfUserIsOwner = async (req, res, next) => {
     const infoCompany = await Company.findById(idCompany);
     if (infoCompany.owners.includes(IDuser)) {
       next();
+    } else {
+      return res.json('Unauthorized'); //configurar numero de error correspondiente.
     }
-    return res.json('Unauthorized');
   } catch (error) {
     console.log(error);
   }
 };
 
-//control for allow delete establishments only for the owners
+// control for allow delete establishments only for the owners
 const checkIfUserIsOwnerEstablishment = async (req, res, next) => {
   const IDuser = req.session.currentUser._id;
   const { idEstablishment } = req.params;
@@ -64,8 +88,9 @@ const checkIfUserIsOwnerEstablishment = async (req, res, next) => {
     const infoEstablishment = await Establishment.findById(idEstablishment);
     if (infoEstablishment.owners.includes(IDuser)) {
       next();
+    } else {
+      return res.json('Unauthorized');
     }
-    return res.json('Unauthorized');
   } catch (error) {
     console.log(error);
   }
@@ -92,6 +117,7 @@ const checkIfTimeChosedByTheUserIsAllowed = async (req, res, next) => {
 module.exports = {
   checkIfLoggedIn,
   checkIfHourIsAllowed,
+  checkIfUserIsOwnerOfCompanyForCreateEstablishments,
   checkIfTimeChosedByTheUserIsAllowed,
   checkUsernameAndPasswordNotEmpty,
   checkIfUserIsOwner,

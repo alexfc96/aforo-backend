@@ -1,6 +1,6 @@
 /* eslint-disable no-underscore-dangle */
 const express = require('express');
-const { checkIfLoggedIn, checkIfHourIsAllowed, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment } = require('../middlewares');
+const { checkIfLoggedIn, checkIfHourIsAllowed, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment, checkIfUserIsOwnerOfCompanyForCreateEstablishments } = require('../middlewares');
 
 const User = require('../models/User');
 const Company = require('../models/Company');
@@ -12,20 +12,14 @@ const router = express.Router();
 router.use(checkIfLoggedIn);
 
 // create a new Establishment
-router.post('/create', async (req, res, next) => {
-  const IDowner = req.session.currentUser._id;
-  const {
-    name, capacity, description, address, company, timetable,
-  } = req.body;
+router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, async (req, res, next) => {
+
+  const { name, capacity, description, address, company, timetable } = req.body;
 
   try {
-    const owner = await User.findById(IDowner);
-    const findCompanyByName = await Company.findOne( // buscamos la compañia que ha seleccionado el admin para vincular el establishment
-      { name: company },
-    );
-    const companyID = findCompanyByName._id;
+    const { _id: companyID, owners } = res.locals.dataCompany;
     const newEstablishment = await Establishment.create({
-      name, capacity, description, address, timetable, owners: owner, company: companyID, // tambien metemos el link a company (necesario?)
+      name, capacity, description, address, timetable, owners, company: companyID, // tambien metemos el link a company (necesario?)
     });
     const addEstablishmentToCompany = await Company.findOneAndUpdate( // y vinculamos este establishment a la company
       { _id: companyID }, { $push: { establishments: newEstablishment._id } },
