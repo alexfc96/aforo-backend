@@ -62,7 +62,7 @@ app.use('/', authRouter);
 app.use('/company', companyRouter);
 app.use('/establishment', establishmentRouter);
 
-// catch 404 and forward to error handler
+// catch 401 and forward to error handler
 app.use((req, res, next) => {
   res.status(401).json({ code: 'unauthorized' });
 });

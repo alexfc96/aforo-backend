@@ -62,7 +62,7 @@ const checkIfUserIsOwnerOfCompanyForCreateEstablishments = async (req, res, next
   }
 };
 
-// control for allow delete establishments only for the owners
+// control for allow remove clients of establishments or delete the establishments only for the owners
 const checkIfUserIsOwnerEstablishment = async (req, res, next) => {
   const IDuser = req.session.currentUser._id;
   const { idEstablishment } = req.params;

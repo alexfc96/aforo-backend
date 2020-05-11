@@ -134,12 +134,32 @@ router.get('/:idEstablishment/booking/:idBooking', async (req, res, next) => {
 });
 
 // delete booking in establishment
-router.delete('/:idEstablishment/delete-booking/:idBooking', async (req, res, next) => { // cuidado con el orden de las rutas(si no tira)
+router.delete('/:idEstablishment/delete-booking/:idBooking', async (req, res, next) => {
   const { idBooking } = req.params;
   // const idUser = req.session.currentUser._id;
   try {
     const deleteBooking = await Booking.findByIdAndDelete(idBooking);
     return res.json(deleteBooking);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+// remove clients of establishment
+router.delete('/:idEstablishment/remove-client/:idClient', checkIfUserIsOwnerEstablishment, async (req, res, next) => {   //creo que aquí hará falta poner otra query con el id del cliente que queremos tratar.
+  const { idEstablishment, idClient } = req.params;
+  console.log(req.params);
+  //const idUser = req.session.currentUser._id;
+  try {
+    const infoEstablishment = await Establishment.findById(idEstablishment);
+    if (infoEstablishment.clients.includes(idClient)) {
+      const removeClientOfEstablishment = await Establishment.findOneAndUpdate(
+        { _id: idEstablishment }, { $pull: { clients: idClient } },
+      );
+      const deleteBookingsOfClienteRemoved = await Booking.deleteMany({ idUser: idClient });
+      return res.json(removeClientOfEstablishment);
+    }
+    return res.json('This user is not client of this establishment');
   } catch (error) {
     console.log(error);
   }
