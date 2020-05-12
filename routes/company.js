@@ -16,11 +16,11 @@ router.use(checkIfLoggedIn); // obliga a estar logueado
 // create a new company
 router.post('/create', async (req, res, next) => {
   const IDowner = req.session.currentUser._id;
-  const { name, description } = req.body;
+  const { name, description, shareClientsInAllEstablishments } = req.body;
   try {
     const owner = await User.findById(IDowner);
     const newCompany = await Company.create({
-      name, description, owners: owner,
+      name, description, shareClientsInAllEstablishments, owners: owner,
     });
     return res.json(newCompany);
   } catch (error) {

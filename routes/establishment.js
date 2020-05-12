@@ -2,7 +2,7 @@
 const express = require('express');
 const { checkIfLoggedIn } = require('../middlewares/midAuth');
 const { checkIfUserIsOwnerOfCompany } = require('../middlewares/midCompany');
-const { checkIfHourIsAllowed, checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfPercentIsAllowedByLaw, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment } = require('../middlewares/midEstablishment');
+const { checkIfHourIsAllowed, checkIfUserCanBooking, checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfIsPossibleBook, checkIfPercentIsAllowedByLaw, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment } = require('../middlewares/midEstablishment');
 
 const User = require('../models/User');
 const Company = require('../models/Company');
@@ -154,24 +154,18 @@ router.delete('/:idEstablishment/remove-owner/:idowner', checkIfUserIsOwnerOfCom
 });
 
 // book hour in establishment
-router.post('/:idEstablishment/booking', checkIfTimeChosedByTheUserIsAllowed, checkIfHourIsAllowed, async (req, res, next) => {
+//cuando recibamos dates volver a mirar el middleware  checkIfIsPossibleBook,
+router.post('/:idEstablishment/booking', checkIfUserCanBooking, checkIfTimeChosedByTheUserIsAllowed, checkIfHourIsAllowed, async (req, res, next) => {
   const { idEstablishment } = req.params;
   const idUser = req.session.currentUser._id;
   const { startTime, endingTime } = req.body;
-  const searchUser = await Establishment.findOne({//pensar si esto lo pasamos a middleware
-    $or: [{ clients: idUser }, { owners: idUser }],
-  });
-  if (searchUser) { // restringir que solo los clientes y owners puedan hacer reservas
-    try {
-      const createBooking = await Booking.create({
-        idUser, idEstablishment, startTime, endingTime,
-      });
-      return res.json(createBooking);
-    } catch (error) {
-      console.log(error);
-    }
-  } else {
-    res.send('401: Unauthorized');
+  try {
+    const createBooking = await Booking.create({
+      idUser, idEstablishment, startTime, endingTime,
+    });
+    return res.json(createBooking);
+  } catch (error) {
+    console.log(error);
   }
 });
 

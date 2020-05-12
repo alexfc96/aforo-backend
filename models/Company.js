@@ -7,6 +7,7 @@ const companySchema = new Schema(
     name: { type: String, required: true, unique: true },
     description: String,
     owners: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    shareClientsInAllEstablishments: { type: Boolean },
     establishments: [{ type: Schema.Types.ObjectId, ref: 'Establishment' }],
   },
   {

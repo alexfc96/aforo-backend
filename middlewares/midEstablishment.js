@@ -3,11 +3,32 @@ const Establishment = require('../models/Establishment');
 const Company = require('../models/Company');
 require('dotenv').config();
 
-// comprobar si el tanto por ciento de personas permitidas es menor al indicado en el .env
+// comprobar si el tanto por ciento de personas permitidas es menor al indicado en el .env cuando un owner de un establishment establece este campo
 const checkIfPercentIsAllowedByLaw = async (req, res, next) => {
   const maximumPercentOfPeopleAllowedByLaw = process.env.MAX_PERCENT;
   const { capacity } = req.body;
   if (capacity.percentOfPeopleAllowed > maximumPercentOfPeopleAllowedByLaw) {
+    res.status(422).json({ code: 'The specified percentage exceeds that stipulated by law.' });
+  } else {
+    next();
+  }
+};
+
+// comprobar si hay espacio en el espacio de tiempo que intenta reservar el usuario
+//darle una vuelta de nuevo cuando reciba date. entonces crear tantas franjas de tiempo como tiempo máximo esté permitido.
+const checkIfIsPossibleBook = async (req, res, next) => {
+  const { idEstablishment } = req.params;
+  //const { startTime, endingTime } = req.body;
+
+  const establishment = await Establishment.findById(idEstablishment);
+  const { maximumCapacity, percentOfPeopleAllowed } = establishment.capacity;
+  const percentOfUsersAllowedInTheEstablishmentInCertainTime = Math.round((maximumCapacity * percentOfPeopleAllowed) / 100);
+  console.log(percentOfUsersAllowedInTheEstablishmentInCertainTime);
+
+  const { timeAllowedPerBooking } = establishment.timetable;
+
+  //persona y tiempo
+  if (capacity.percentOfPeopleAllowed > percentOfUsersAllowedInTheEstablishmentInCertainTime) {
     res.status(422).json({ code: 'The specified percentage exceeds that stipulated by law.' });
   } else {
     next();
@@ -90,8 +111,28 @@ const checkIfUserIsOwnerEstablishment = async (req, res, next) => {
   }
 };
 
+const checkIfUserCanBooking = async (req, res, next) => {
+  const idUser = req.session.currentUser._id;
+  const { idEstablishment } = req.params;
+  try {
+    const searchUser = await Establishment.findOne(
+      {_id: idEstablishment }, { $or: [{ clients: idUser }, { owners: idUser }] },
+    );
+    if (searchUser) {
+      next();
+    } else {
+      return res.json('401: Unauthorized');
+    }
+  } catch (error) {
+    console.log(error);
+  }
+
+};
+
 module.exports = {
+  checkIfIsPossibleBook,
   checkIfPercentIsAllowedByLaw,
+  checkIfUserCanBooking,
   checkIfHourIsAllowed,
   checkIfUserIsOwnerOfCompanyForCreateEstablishments,
   checkIfTimeChosedByTheUserIsAllowed,
