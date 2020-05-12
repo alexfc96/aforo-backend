@@ -6,7 +6,10 @@ const establishmentSchema = new Schema(
   {
     name: { type: String, required: true },
     description: String,
-    capacity: { type: Number, required: true }, //hacerlo objeto y dar la opcion de cambiar el tantop por ciento de ocuapcion maxima al admin?
+    capacity: {
+      maximumCapacity: { type: Number, required: true },
+      percentOfPeopleAllowed: { type: Number, required: true },
+    },
     address: String,
     timetable: {
       startHourShift: { type: Number, required: true },

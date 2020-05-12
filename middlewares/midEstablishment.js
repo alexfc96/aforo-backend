@@ -1,6 +1,18 @@
 /* eslint-disable no-underscore-dangle */
 const Establishment = require('../models/Establishment');
 const Company = require('../models/Company');
+require('dotenv').config();
+
+// comprobar si el tanto por ciento de personas permitidas es menor al indicado en el .env
+const checkIfPercentIsAllowedByLaw = async (req, res, next) => {
+  const maximumPercentOfPeopleAllowedByLaw = process.env.MAX_PERCENT;
+  const { capacity } = req.body;
+  if (capacity.percentOfPeopleAllowed > maximumPercentOfPeopleAllowedByLaw) {
+    res.status(422).json({ code: 'The specified percentage exceeds that stipulated by law.' });
+  } else {
+    next();
+  }
+};
 
 // cuando tenga el front y me pasen las horas ya haremos:
 const checkIfHourIsAllowed = async (req, res, next) => {
@@ -42,7 +54,7 @@ const checkIfTimeChosedByTheUserIsAllowed = async (req, res, next) => {
 
 // Como aprovechar esto para establishment y no tener que hacer 2 diferentes?
 // control for allow delete companay only for the owners
-const checkIfUserIsOwnerOfCompany = async (req, res, next) => {
+const checkIfUserIsOwnerOfCompanyForCreateEstablishments = async (req, res, next) => {
   const IDuser = req.session.currentUser._id;
   const { company } = req.body;
   try {
@@ -54,7 +66,7 @@ const checkIfUserIsOwnerOfCompany = async (req, res, next) => {
       // console.log(infoOfCompany);
       res.locals.dataCompany = infoOfCompany;
       next();
-    } else {//si no pongo el else se muestra siempre el unauthorized. Porque? el next no es como un return?
+    } else { // si no pongo el else se muestra siempre el unauthorized. Porque? el next no es como un return?
       return res.json('Unauthorized');
     }
   } catch (error) {
@@ -79,8 +91,9 @@ const checkIfUserIsOwnerEstablishment = async (req, res, next) => {
 };
 
 module.exports = {
+  checkIfPercentIsAllowedByLaw,
   checkIfHourIsAllowed,
-  checkIfUserIsOwnerOfCompany,
+  checkIfUserIsOwnerOfCompanyForCreateEstablishments,
   checkIfTimeChosedByTheUserIsAllowed,
   checkIfUserIsOwnerEstablishment,
 };

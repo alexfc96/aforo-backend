@@ -1,8 +1,8 @@
 /* eslint-disable no-underscore-dangle */
 const express = require('express');
 const { checkIfLoggedIn } = require('../middlewares/midAuth');
-const { checkIfUserIsOwnerOfCompany, } = require('../middlewares/midCompany');
-const { checkIfHourIsAllowed, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment } = require('../middlewares/midEstablishment');
+const { checkIfUserIsOwnerOfCompany } = require('../middlewares/midCompany');
+const { checkIfHourIsAllowed, checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfPercentIsAllowedByLaw, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment } = require('../middlewares/midEstablishment');
 
 const User = require('../models/User');
 const Company = require('../models/Company');
@@ -14,16 +14,16 @@ const router = express.Router();
 router.use(checkIfLoggedIn);
 
 // create a new Establishment
-router.post('/create', checkIfUserIsOwnerOfCompany, async (req, res, next) => {
+router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
   const {
     name, capacity, description, address, company, timetable,
   } = req.body;
   try {
     const { _id: companyID, owners } = res.locals.dataCompany;
     const newEstablishment = await Establishment.create({
-      name, capacity, description, address, timetable, owners, company: companyID, // tambien metemos el link a company (necesario?)
+      name, capacity, description, address, timetable, owners, company: companyID, //link to the company because is possible that the owner could have more than once company
     });
-    const addEstablishmentToCompany = await Company.findOneAndUpdate( // y vinculamos este establishment a la company
+    const addEstablishmentToCompany = await Company.findOneAndUpdate( // linked establishment to the company
       { _id: companyID }, { $push: { establishments: newEstablishment._id } },
     );
     return res.json(newEstablishment);
@@ -45,7 +45,7 @@ router.get('/:idEstablishment', async (req, res, next) => {
 });
 
 //admin data establishment
-router.put('/:idEstablishment/admin', checkIfUserIsOwnerEstablishment, async (req, res, next) => {
+router.put('/:idEstablishment/admin', checkIfUserIsOwnerEstablishment, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
   const { idEstablishment } = req.params;
   const {
     name, capacity, description, address, timetable,
