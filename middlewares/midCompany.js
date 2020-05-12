@@ -19,7 +19,7 @@ const checkIfUserIsOwner = async (req, res, next) => {
   }
 };
 
-// check if the user session is owner of the company
+// check if the user session is owner of the company(used in the routes of the establishments)
 const checkIfUserIsOwnerOfCompany = async (req, res, next) => {
   const IDuser = req.session.currentUser._id;
   const { idEstablishment } = req.params;

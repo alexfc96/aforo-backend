@@ -44,8 +44,25 @@ router.get('/:idEstablishment', async (req, res, next) => {
   }
 });
 
+//admin data establishment
+router.put('/:idEstablishment/admin', checkIfUserIsOwnerEstablishment, async (req, res, next) => {
+  const { idEstablishment } = req.params;
+  const {
+    name, capacity, description, address, timetable,
+  } = req.body;
+  try {
+    const modifyEstablishment = await Establishment.findByIdAndUpdate(
+      { _id: idEstablishment }, { name, capacity, description, address, timetable },
+    );
+    return res.json(modifyEstablishment);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 // delete Establishment, this also delete all the bookings vinculated to the establishment
-router.delete('/:idEstablishment', checkIfUserIsOwnerEstablishment, async (req, res, next) => {
+// limitado a owners de la company:
+router.delete('/:idEstablishment', checkIfUserIsOwnerOfCompany, async (req, res, next) => {
   const { idEstablishment } = req.params;
   try {
     const deleteEstablishment = await Establishment.findByIdAndDelete(idEstablishment);
@@ -99,7 +116,7 @@ router.delete('/:idEstablishment/remove-client/:idClient', checkIfUserIsOwnerEst
 });
 
 // join owner to establishment
-// si eres owner de la company puedes invitar a owners para los stablishments
+// limitado a owners de la company:
 router.post('/:idEstablishment/join-owner/:idOwner', checkIfUserIsOwnerOfCompany, async (req, res, next) => {
   const { idEstablishment, idOwner } = req.params;
   console.log(req.params)
@@ -118,6 +135,7 @@ router.post('/:idEstablishment/join-owner/:idOwner', checkIfUserIsOwnerOfCompany
 });
 
 // remove owner of establishment
+// limitado a owners de la company:
 router.delete('/:idEstablishment/remove-owner/:idowner', checkIfUserIsOwnerOfCompany, async (req, res, next) => {
   const { idEstablishment, idowner } = req.params;
   try {
@@ -136,11 +154,11 @@ router.delete('/:idEstablishment/remove-owner/:idowner', checkIfUserIsOwnerOfCom
 });
 
 // book hour in establishment
-router.post('/:idEstablishment/booking', checkIfTimeChosedByTheUserIsAllowed, checkIfHourIsAllowed, async (req, res, next) => { // cuidado con el orden de las rutas(si no tira)
+router.post('/:idEstablishment/booking', checkIfTimeChosedByTheUserIsAllowed, checkIfHourIsAllowed, async (req, res, next) => {
   const { idEstablishment } = req.params;
   const idUser = req.session.currentUser._id;
   const { startTime, endingTime } = req.body;
-  const searchUser = await Establishment.findOne({
+  const searchUser = await Establishment.findOne({//pensar si esto lo pasamos a middleware
     $or: [{ clients: idUser }, { owners: idUser }],
   });
   if (searchUser) { // restringir que solo los clientes y owners puedan hacer reservas

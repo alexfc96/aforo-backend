@@ -41,12 +41,12 @@ router.get('/:idCompany', async (req, res, next) => {
 });
 
 //admin data company
-router.put('/:idCompany/admin', async (req, res, next) => {
+router.put('/:idCompany/admin', checkIfUserIsOwner, async (req, res, next) => {
   const { idCompany } = req.params;
   const { name, description } = req.body;
   try {
     const modifyCompany = await Company.findByIdAndUpdate(
-      { idCompany }, { name, description },
+      { _id: idCompany }, { name, description },
     );
     return res.json(modifyCompany);
   } catch (error) {
@@ -58,7 +58,6 @@ router.put('/:idCompany/admin', async (req, res, next) => {
 //pensar medidas de seguridad
 router.post('/:idCompany/join-owner/:idOwner', async (req, res, next) => {
   const { idCompany, idOwner } = req.params;
-  // const idOwner = req.session.currentUser._id;
   try {
     const infoCompany = await Company.findById(idCompany);
     if (!infoCompany.owners.includes(idOwner)) {

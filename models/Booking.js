@@ -9,6 +9,11 @@ const bookingSchema = new Schema(
     startTime: { type: Number, required: true },
     endingTime: { type: Number, required: true },
   },
+  {
+    timestamps: {
+      createdAt: 'created_at',
+    },
+  },
 );
 
 const Booking = mongoose.model('Booking', bookingSchema);
