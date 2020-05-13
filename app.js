@@ -56,11 +56,15 @@ app.use(
 
 const authRouter = require('./routes/auth');
 const companyRouter = require('./routes/company');
-const establishmentRouter = require('./routes/establishment'); //que este vaya dentro de la company?
+const establishmentRouter = require('./routes/establishment');
+const userRouter = require('./routes/user');
+
 
 app.use('/', authRouter);
 app.use('/company', companyRouter);
 app.use('/establishment', establishmentRouter);
+app.use('/user', userRouter);
+
 
 // catch 401 and forward to error handler
 app.use((req, res, next) => {
