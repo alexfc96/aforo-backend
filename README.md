@@ -136,5 +136,6 @@
   ​ https://trello.com/b/TW4KSt9j/aforo
 
   ​**Deploy by Heroku**
+  https://aforo.herokuapp.com/
 
   **Slides**

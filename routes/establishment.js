@@ -3,7 +3,7 @@ const express = require('express');
 const { checkIfLoggedIn } = require('../middlewares/midAuth');
 const { checkIfUserIsOwnerOfCompany } = require('../middlewares/midCompany');
 const {
-  checkIfHourIsAllowed, checkIfUserCanBooking, checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfIsPossibleBook, checkIfPercentIsAllowedByLaw, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment,
+  checkIfHourIsAllowed, checkIfUserCanBooking, checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfNameOfEstablishmentExists, checkIfPercentIsAllowedByLaw, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment,
 } = require('../middlewares/midEstablishment');
 
 const User = require('../models/User');
@@ -16,7 +16,7 @@ const router = express.Router();
 router.use(checkIfLoggedIn);
 
 // create a new Establishment
-router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
+router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfNameOfEstablishmentExists, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
   const {
     name, capacity, description, address, company, timetable,
   } = req.body;
@@ -24,8 +24,7 @@ router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, check
     const { _id: companyID, owners } = res.locals.dataCompany;
     const getCompany = await Company.findById(companyID);
     if (getCompany.shareClientsInAllEstablishments && getCompany.establishments.length > 0) {
-      const oneEstablishment = getCompany.establishments[0];
-      const getOneEstablishment = await Establishment.findById(oneEstablishment);
+      const getOneEstablishment = await Establishment.findById(getCompany.establishments[0]);
       const { clients } = getOneEstablishment;
       const newEstablishment = await Establishment.create({
         name, capacity, description, address, timetable, owners, clients, company: companyID,
@@ -44,7 +43,6 @@ router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, check
     return res.json(newEstablishment);
   } catch (error) {
     console.log(error);
-    return res.json('This name of establishment is already created');
   }
 });
 

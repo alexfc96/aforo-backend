@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 
 const establishmentSchema = new Schema(
   {
-    name: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
     description: String,
     capacity: {
       maximumCapacity: { type: Number, required: true },

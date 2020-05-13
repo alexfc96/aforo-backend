@@ -15,10 +15,10 @@ const checkIfPercentIsAllowedByLaw = async (req, res, next) => {
 };
 
 // comprobar si hay espacio en el espacio de tiempo que intenta reservar el usuario
-//darle una vuelta de nuevo cuando reciba date. entonces crear tantas franjas de tiempo como tiempo máximo esté permitido.
+// darle una vuelta de nuevo cuando reciba date. entonces crear tantas franjas de tiempo como tiempo máximo esté permitido.
 const checkIfIsPossibleBook = async (req, res, next) => {
   const { idEstablishment } = req.params;
-  //const { startTime, endingTime } = req.body;
+  // const { startTime, endingTime } = req.body;
 
   const establishment = await Establishment.findById(idEstablishment);
   const { maximumCapacity, percentOfPeopleAllowed } = establishment.capacity;
@@ -27,7 +27,7 @@ const checkIfIsPossibleBook = async (req, res, next) => {
 
   const { timeAllowedPerBooking } = establishment.timetable;
 
-  //persona y tiempo
+  // persona y tiempo
   if (capacity.percentOfPeopleAllowed > percentOfUsersAllowedInTheEstablishmentInCertainTime) {
     res.status(422).json({ code: 'The specified percentage exceeds that stipulated by law.' });
   } else {
@@ -128,7 +128,30 @@ const checkIfUserCanBooking = async (req, res, next) => {
   }
 };
 
+const checkIfNameOfEstablishmentExists = async (req, res, next) => {
+  const { _id: companyID } = res.locals.dataCompany;
+  const { name } = req.body;
+  let exist = false;
+  try {
+    const getCompany = await Company.findById(companyID).populate('establishments');
+    const { establishments } = getCompany;
+    establishments.forEach((establishment) => {
+      if (establishment.name === name) {
+        exist = true;
+      }
+    });
+    if (!exist) {
+      next();
+    } else {
+      return res.json('This name of establishment is already created');
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 module.exports = {
+  checkIfNameOfEstablishmentExists,
   checkIfIsPossibleBook,
   checkIfPercentIsAllowedByLaw,
   checkIfUserCanBooking,
