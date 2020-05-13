@@ -22,6 +22,19 @@ router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, check
   } = req.body;
   try {
     const { _id: companyID, owners } = res.locals.dataCompany;
+    const getCompany = await Company.findById(companyID);
+    if (getCompany.shareClientsInAllEstablishments && getCompany.establishments.length > 0) {
+      const oneEstablishment = getCompany.establishments[0];
+      const getOneEstablishment = await Establishment.findById(oneEstablishment);
+      const { clients } = getOneEstablishment;
+      const newEstablishment = await Establishment.create({
+        name, capacity, description, address, timetable, owners, clients, company: companyID,
+      });
+      const addEstablishmentToCompany = await Company.findOneAndUpdate(
+        { _id: companyID }, { $push: { establishments: newEstablishment._id } },
+      );
+      return res.json(newEstablishment);
+    }
     const newEstablishment = await Establishment.create({
       name, capacity, description, address, timetable, owners, company: companyID, // link to the company because is possible that the owner could have more than once company
     });
