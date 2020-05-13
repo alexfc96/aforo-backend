@@ -116,7 +116,7 @@ const checkIfUserCanBooking = async (req, res, next) => {
   const { idEstablishment } = req.params;
   try {
     const searchUser = await Establishment.findOne(
-      {_id: idEstablishment }, { $or: [{ clients: idUser }, { owners: idUser }] },
+      { _id: idEstablishment }, { $or: [{ clients: idUser }, { owners: idUser }] },
     );
     if (searchUser) {
       next();
