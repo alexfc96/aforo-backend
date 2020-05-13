@@ -99,10 +99,12 @@ router.delete('/:idCompany', checkIfUserIsOwner, async (req, res, next) => {
   const { idCompany } = req.params;
   try {
     const deleteCompany = await Company.findByIdAndDelete(idCompany);
+    console.log(deleteCompany.establishments);
+    const { establishments } = deleteCompany;
     const deleteEstablishments = await Establishment.deleteMany({ company: idCompany });
-    const deleteBookings = await Booking.deleteMany({
-      idEstablishment: { $in: [deleteCompany.establishments] },
-    });
+    const deleteBookings = await Booking.deleteMany(
+      { idEstablishment: { $in: deleteCompany.establishments } },
+    );
     return res.send("Company deleted succesfully");
   } catch (error) {
     console.log(error);

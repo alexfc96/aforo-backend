@@ -126,7 +126,6 @@ const checkIfUserCanBooking = async (req, res, next) => {
   } catch (error) {
     console.log(error);
   }
-
 };
 
 module.exports = {
