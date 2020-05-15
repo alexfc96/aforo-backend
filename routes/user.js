@@ -12,6 +12,7 @@ const { checkIfMailExists } = require('../middlewares/midUser');
 
 const User = require('../models/User');
 const Company = require('../models/Company');
+const Booking = require('../models/Booking');
 const Establishment = require('../models/Establishment');
 
 const bcryptSalt = 10;
@@ -20,7 +21,18 @@ const router = express.Router();
 
 router.use(checkIfLoggedIn);
 
-//otro para saber si yo soy yo y me puedo eliminar.
+// show the info of User
+router.get('/:idUser', async (req, res, next) => {
+  const { idUser } = req.params;
+  try {
+    const getUser = await User.findById(idUser);
+    return res.json(getUser);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+// otro para saber si yo soy yo y me puedo eliminar.
 router.put('/:idUser/update', checkIfMailExists, async (req, res, next) => {
   const {
     name, years, mail, currentPassword, newPassword,
@@ -49,6 +61,26 @@ router.put('/:idUser/update', checkIfMailExists, async (req, res, next) => {
     console.log(error);
   }
 });
+
+// router.delete('/remove', async (req, res, next) => {
+//   const idUser = req.session.currentUser._id;
+//   console.log(idUser)
+//   try {
+//     const deleteUser = await User.findByIdAndDelete(idUser);
+//     const deleteIfIsOwnerOfCompany = await Company.updateMany(
+//       { $pull:  { owners: idUser },
+//     );
+//     const deleteFromEstablishments = await Establishment.updateMany(
+//       { $or: [{ clients: idUser }, { owners: idUser }] },  { $pull:  { owners: idUser,}, { clients: idUser }},
+//     );
+//     const deleteBookingsOfUserRemoved = await Booking.deleteMany({ idUser });
+//     req.session.destroy()
+//     return res.json(deleteUser);
+//   } catch (error) {
+//     console.log(error)
+//   }
+
+// });
 
 
 module.exports = router;

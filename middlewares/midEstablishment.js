@@ -130,16 +130,27 @@ const checkIfUserCanBooking = async (req, res, next) => {
 
 const checkIfNameOfEstablishmentExists = async (req, res, next) => {
   const { _id: companyID } = res.locals.dataCompany;
+  // console.log(companyID);
   const { name } = req.body;
   let exist = false;
   try {
-    const getCompany = await Company.findById(companyID).populate('establishments');
+    const getCompany = await Company.findById(companyID);
+    // const getEstablishments = await Company.findById(companyID).populate('establishments');
     const { establishments } = getCompany;
-    establishments.forEach((establishment) => {
-      if (establishment.name === name) {
-        exist = true;
-      }
-    });
+
+    const printEstablishments = async () => {
+      establishments.forEach(async (establishment, index) => {
+        // console.log(establishment)
+        let serachNameOfEstablishment = await Establishment.findById(establishment);
+        // console.log(serachNameOfEstablishment)
+        if (serachNameOfEstablishment.name === name) {
+          console.log("Ese nombre ya está cogido");
+          exist = true;
+        }
+      });
+    };
+    printEstablishments();//si aquií pongo antes el async me peta.
+
     if (!exist) {
       next();
     } else {

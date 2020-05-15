@@ -16,7 +16,9 @@ const router = express.Router();
 router.use(checkIfLoggedIn);
 
 // create a new Establishment
-router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfNameOfEstablishmentExists, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
+//demomento quito el middleware checkIfNameOfEstablishmentExists,
+router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
+  console.log("entro")
   const {
     name, capacity, description, address, company, timetable,
   } = req.body;
@@ -89,6 +91,7 @@ router.delete('/:idEstablishment', checkIfUserIsOwnerOfCompany, async (req, res,
     const deleteBookingsOfEstablishment = await Booking.deleteMany(
       { idEstablishment: establishmentId },
     );
+    console.log("acobo")
     return res.json(deleteEstablishment);
   } catch (error) {
     console.log(error);
@@ -104,7 +107,7 @@ router.post('/:idEstablishment/join-client/:idClient', checkIfUserIsOwnerEstabli
       const getCompany = await Company.findById(infoEstablishment.company);
       if (getCompany.shareClientsInAllEstablishments) {
         const addClientToAllEstablishments = await Establishment.updateMany(
-          { _id: { $in: getCompany.establishments } }, { $push: { clients: idClient } },
+          { _id: getCompany.establishments }, { $push: { clients: idClient } },
         );
         return res.json(addClientToAllEstablishments);
       }

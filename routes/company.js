@@ -65,7 +65,7 @@ router.post('/:idCompany/join-owner/:idOwner', async (req, res, next) => {
         { _id: idCompany }, { $push: { owners: idOwner } },
       );
       const setNewOwnerToEstablishments = await Establishment.updateMany(
-        { _id: { $in: infoCompany.establishments } }, { $push: { owners: idOwner } },
+        { _id: infoCompany.establishments }, { $push: { owners: idOwner } },
       );
       return res.json(addOwnerToCompany);
     }
@@ -86,7 +86,7 @@ router.delete('/:idCompany/remove-owner/:idOwner', checkIfUserIsOwner, async (re
         { _id: idCompany }, { $pull: { owners: idOwner } },
       );
       const removeownerOfEstablishments = await Establishment.updateMany(
-        { _id: { $in: infoCompany.establishments } }, { $pull: { owners: idOwner } },
+        { _id: infoCompany.establishments }, { $pull: { owners: idOwner } },
       );
       //const deleteBookingsOfOwner = await Booking.deleteMany({ idUser: idOwner }); //peligroso por si tiene otras companies
       return res.json(removeownerOfCompany);
@@ -106,9 +106,9 @@ router.delete('/:idCompany', checkIfUserIsOwner, async (req, res, next) => {
     const { establishments } = deleteCompany;
     const deleteEstablishments = await Establishment.deleteMany({ company: idCompany });
     const deleteBookings = await Booking.deleteMany(
-      { idEstablishment: { $in: deleteCompany.establishments } },
+      { idEstablishment: establishments },
     );
-    return res.send("Company deleted succesfully");
+    return res.json("Company deleted succesfully");
   } catch (error) {
     console.log(error);
   }
