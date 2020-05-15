@@ -106,7 +106,7 @@ router.post('/:idEstablishment/join-client/:idClient', checkIfUserIsOwnerEstabli
       const getCompany = await Company.findById(infoEstablishment.company);
       if (getCompany.shareClientsInAllEstablishments) {
         const addClientToAllEstablishments = await Establishment.updateMany(
-          { _id: { $in: getCompany.establishments } }, { $push: { clients: idClient } },
+          { _id: getCompany.establishments }, { $push: { clients: idClient } },
         );
         return res.json(addClientToAllEstablishments);
       }
