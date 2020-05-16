@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 
-const { checkUsernameAndPasswordNotEmpty } = require('../middlewares/midAuth');
+const { checkUsernameAndPasswordNotEmpty, checkIfMailExists } = require('../middlewares/midAuth');
 
 const User = require('../models/User');
 
@@ -17,7 +17,7 @@ router.get('/whoami', (req, res, next) => {
   }
 });
 
-router.post('/signup', checkUsernameAndPasswordNotEmpty, async (req, res, next) => {
+router.post('/signup', checkUsernameAndPasswordNotEmpty, checkIfMailExists, async (req, res, next) => {
   const { username, password, mail, name, years} = res.locals.auth;
   try {
     const user = await User.findOne({ username });
@@ -58,7 +58,7 @@ router.get('/logout', (req, res, next) => {
     if (err) {
       next(err);
     }
-    return res.status(204).send();
+    return res.status(204).send("Logout succesfully");
   });
 });
 

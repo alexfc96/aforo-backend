@@ -65,7 +65,7 @@ router.post('/:idCompany/join-owner/:idOwner', async (req, res, next) => {
         { _id: idCompany }, { $push: { owners: idOwner } },
       );
       const setNewOwnerToEstablishments = await Establishment.updateMany(
-        { _id: { $in: infoCompany.establishments } }, { $push: { owners: idOwner } },
+        { _id: infoCompany.establishments }, { $push: { owners: idOwner } },
       );
       return res.json(addOwnerToCompany);
     }
@@ -76,7 +76,6 @@ router.post('/:idCompany/join-owner/:idOwner', async (req, res, next) => {
 });
 
 // remove owner of Company
-// esto no hace que borre el owner de los establishments. pensarlo bien.
 router.delete('/:idCompany/remove-owner/:idOwner', checkIfUserIsOwner, async (req, res, next) => {
   const { idCompany, idOwner } = req.params;
   try {
@@ -86,9 +85,9 @@ router.delete('/:idCompany/remove-owner/:idOwner', checkIfUserIsOwner, async (re
         { _id: idCompany }, { $pull: { owners: idOwner } },
       );
       const removeownerOfEstablishments = await Establishment.updateMany(
-        { _id: { $in: infoCompany.establishments } }, { $pull: { owners: idOwner } },
+        { _id: infoCompany.establishments }, { $pull: { owners: idOwner } },
       );
-      //const deleteBookingsOfOwner = await Booking.deleteMany({ idUser: idOwner }); //peligroso por si tiene otras companies
+      const deleteBookingsOfOwner = await Booking.deleteMany({ idUser: idOwner }, { idEstablishment: infoCompany.establishments });
       return res.json(removeownerOfCompany);
     }
     return res.json('This user is not owner of this Company');
@@ -109,9 +108,13 @@ router.delete('/:idCompany', checkIfUserIsOwner, async (req, res, next) => {
     const deleteBookings = await Booking.deleteMany(
       { idEstablishment: establishments },
     );
+<<<<<<< HEAD
     console.log("genial")
 
     return res.send("Company deleted succesfully");
+=======
+    return res.json("Company deleted succesfully");
+>>>>>>> dev
   } catch (error) {
     console.log(error);
   }
