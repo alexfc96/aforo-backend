@@ -58,7 +58,7 @@ router.get('/logout', (req, res, next) => {
     if (err) {
       next(err);
     }
-    return res.status(204).send();
+    return res.status(204).send("Logout succesfully");
   });
 });
 

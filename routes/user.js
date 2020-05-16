@@ -62,25 +62,40 @@ router.put('/:idUser/update', checkIfMailExists, async (req, res, next) => {
   }
 });
 
-// router.delete('/remove', async (req, res, next) => {
-//   const idUser = req.session.currentUser._id;
-//   console.log(idUser)
-//   try {
-//     const deleteUser = await User.findByIdAndDelete(idUser);
-//     const deleteIfIsOwnerOfCompany = await Company.updateMany(
-//       { $pull:  { owners: idUser },
-//     );
-//     const deleteFromEstablishments = await Establishment.updateMany(
-//       { $or: [{ clients: idUser }, { owners: idUser }] },  { $pull:  { owners: idUser,}, { clients: idUser }},
-//     );
-//     const deleteBookingsOfUserRemoved = await Booking.deleteMany({ idUser });
-//     req.session.destroy()
-//     return res.json(deleteUser);
-//   } catch (error) {
-//     console.log(error)
-//   }
+router.delete('/delete', async (req, res, next) => {
+  const idUser = req.session.currentUser._id;
+  console.log(idUser);
+  try {
+    const deleteUser = await User.findByIdAndDelete(idUser);
+    console.log('usre deleted');
+    const deleteIfIsOwnerOfCompany = await Company.updateMany(
+      { $pull: { owners: idUser } },
+    );
+    console.log('usre deleted en el caso de que sea owner de una company');
+    console.log(deleteIfIsOwnerOfCompany.nModified);
+    if (deleteIfIsOwnerOfCompany.nModified > 0) {
+      const deleteCompanyIfNotHaveOwner = await Company.deleteMany(
+        { owners: { $exists: true, $size: 0 } },
+      );
+      //Darle una vuelta de tuerca a la siguiente iteraccion:
+      const deleteEstablishments = await Establishment.deleteMany(
+        { owners: { $exists: true, $size: 0 } },
+      );
+    }
+    const deleteFromEstablishments = await Establishment.updateMany(
+      { $or: [{ clients: idUser }, { owners: idUser }] },
+      { $pull: { owners: idUser, clients: idUser } },
+    );
+    console.log('usre deleted en el caso de que forme parte de establishment(client/owner) ');
+    const deleteBookingsOfUserRemoved = await Booking.deleteMany({ idUser });
+    console.log('usre deleted bookings');
 
-// });
+    req.session.destroy();
+    return res.json(deleteUser);
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 
 module.exports = router;

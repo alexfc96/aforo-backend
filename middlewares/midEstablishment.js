@@ -139,9 +139,9 @@ const checkIfNameOfEstablishmentExists = async (req, res, next) => {
     const { establishments } = getCompany;
 
     const printEstablishments = async () => {
-      establishments.forEach(async (establishment, index) => {
-        // console.log(establishment)
-        let serachNameOfEstablishment = await Establishment.findById(establishment);
+      establishments.forEach(async (establishment) => {
+        console.log(establishment);
+        const serachNameOfEstablishment = await Establishment.findById(establishment);
         // console.log(serachNameOfEstablishment)
         if (serachNameOfEstablishment.name === name) {
           console.log("Ese nombre ya está cogido");
@@ -149,8 +149,10 @@ const checkIfNameOfEstablishmentExists = async (req, res, next) => {
         }
       });
     };
-    printEstablishments();//si aquií pongo antes el async me peta.
-
+    console.log("antes del asyn")
+    await printEstablishments();//si aquií pongo antes el async me peta.
+    console.log("debería esperar")
+    
     if (!exist) {
       next();
     } else {

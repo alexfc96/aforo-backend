@@ -17,7 +17,7 @@ router.use(checkIfLoggedIn);
 
 // create a new Establishment
 //demomento quito el middleware checkIfNameOfEstablishmentExists,
-router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
+router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfNameOfEstablishmentExists, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
   console.log("entro")
   const {
     name, capacity, description, address, company, timetable,
@@ -44,6 +44,7 @@ router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, check
     );
     return res.json(newEstablishment);
   } catch (error) {
+    return res.json(error);
     console.log(error);
   }
 });
