@@ -3,10 +3,10 @@ const express = require('express');
 const { checkIfLoggedIn } = require('../middlewares/midAuth');
 const { checkIfUserIsOwnerOfCompany } = require('../middlewares/midCompany');
 const {
-  checkIfHourIsAllowed, checkIfUserCanBooking, checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfNameOfEstablishmentExists, checkIfPercentIsAllowedByLaw, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment,
+  checkIfHourIsAllowed, createEstablishment, checkIfUserCanBooking, checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfNameOfEstablishmentExists, checkIfPercentIsAllowedByLaw, checkIfTimeChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment,
 } = require('../middlewares/midEstablishment');
 
-const User = require('../models/User');
+// const User = require('../models/User');
 const Company = require('../models/Company');
 const Establishment = require('../models/Establishment');
 const Booking = require('../models/Booking');
@@ -15,33 +15,24 @@ const router = express.Router();
 
 router.use(checkIfLoggedIn);
 
+// res.status(200).json({
+// 	demo: 'Welcome this route is protected',
+// });
+
 // create a new Establishment
-//demomento quito el middleware checkIfNameOfEstablishmentExists,
-router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfNameOfEstablishmentExists, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
-  console.log("entro")
-  const {
-    name, capacity, description, address, company, timetable,
-  } = req.body;
+//falta el checkIfNameOfEstablishmentExists,
+router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
+  console.log('entro');
+  const { _id: companyID } = res.locals.dataCompany;
   try {
-    const { _id: companyID, owners } = res.locals.dataCompany;
     const getCompany = await Company.findById(companyID);
     if (getCompany.shareClientsInAllEstablishments && getCompany.establishments.length > 0) {
       const getOneEstablishment = await Establishment.findById(getCompany.establishments[0]);
       const { clients } = getOneEstablishment;
-      const newEstablishment = await Establishment.create({
-        name, capacity, description, address, timetable, owners, clients, company: companyID,
-      });
-      const addEstablishmentToCompany = await Company.findOneAndUpdate(
-        { _id: companyID }, { $push: { establishments: newEstablishment._id } },
-      );
+      const newEstablishment = await createEstablishment(req.body, res.locals.dataCompany, clients);
       return res.json(newEstablishment);
     }
-    const newEstablishment = await Establishment.create({
-      name, capacity, description, address, timetable, owners, company: companyID, // link to the company because is possible that the owner could have more than once company
-    });
-    const addEstablishmentToCompany = await Company.findOneAndUpdate( // linked establishment to the company
-      { _id: companyID }, { $push: { establishments: newEstablishment._id } },
-    );
+    const newEstablishment = await createEstablishment(req.body, res.locals.dataCompany);
     return res.json(newEstablishment);
   } catch (error) {
     return res.json(error);
@@ -79,8 +70,7 @@ router.put('/:idEstablishment/admin', checkIfUserIsOwnerEstablishment, checkIfPe
   }
 });
 
-// delete Establishment, this also delete all the bookings vinculated to the establishment
-// limitado a owners de la company:
+// delete Establishment, this also delete all the bookings vinculated to the establishment(only for owners of company)
 router.delete('/:idEstablishment', checkIfUserIsOwnerOfCompany, async (req, res, next) => {
   const { idEstablishment } = req.params;
   try {
@@ -92,7 +82,6 @@ router.delete('/:idEstablishment', checkIfUserIsOwnerOfCompany, async (req, res,
     const deleteBookingsOfEstablishment = await Booking.deleteMany(
       { idEstablishment: establishmentId },
     );
-    console.log("acobo")
     return res.json(deleteEstablishment);
   } catch (error) {
     console.log(error);
@@ -126,7 +115,6 @@ router.post('/:idEstablishment/join-client/:idClient', checkIfUserIsOwnerEstabli
 // remove clients of establishment
 router.delete('/:idEstablishment/remove-client/:idClient', checkIfUserIsOwnerEstablishment, async (req, res, next) => { // creo que aquí hará falta poner otra query con el id del cliente que queremos tratar.
   const { idEstablishment, idClient } = req.params;
-  console.log(req.params);
   try {
     const infoEstablishment = await Establishment.findById(idEstablishment);
     if (infoEstablishment.clients.includes(idClient)) {
@@ -142,11 +130,9 @@ router.delete('/:idEstablishment/remove-client/:idClient', checkIfUserIsOwnerEst
   }
 });
 
-// join owner to establishment
-// limitado a owners de la company:
+// join owner to establishment(only for owners of company)
 router.post('/:idEstablishment/join-owner/:idOwner', checkIfUserIsOwnerOfCompany, async (req, res, next) => {
   const { idEstablishment, idOwner } = req.params;
-  console.log(req.params);
   try {
     const infoEstablishment = await Establishment.findById(idEstablishment);
     if (!infoEstablishment.owners.includes(idOwner)) {
@@ -161,8 +147,7 @@ router.post('/:idEstablishment/join-owner/:idOwner', checkIfUserIsOwnerOfCompany
   }
 });
 
-// remove owner of establishment
-// limitado a owners de la company:
+// remove owner of establishment(only for owners of company)
 router.delete('/:idEstablishment/remove-owner/:idowner', checkIfUserIsOwnerOfCompany, async (req, res, next) => {
   const { idEstablishment, idowner } = req.params;
   try {

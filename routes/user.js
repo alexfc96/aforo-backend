@@ -3,12 +3,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 
-const { checkIfLoggedIn } = require('../middlewares/midAuth');
-const { checkIfUserIsOwnerOfCompany } = require('../middlewares/midCompany');
-const {
-  checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfUserIsOwnerEstablishment,
-} = require('../middlewares/midEstablishment');
-const { checkIfMailExists } = require('../middlewares/midUser');
+const { checkIfMailExists, checkIfLoggedIn } = require('../middlewares/midAuth');
 
 const User = require('../models/User');
 const Company = require('../models/Company');
@@ -67,12 +62,9 @@ router.delete('/delete', async (req, res, next) => {
   console.log(idUser);
   try {
     const deleteUser = await User.findByIdAndDelete(idUser);
-    console.log('usre deleted');
     const deleteIfIsOwnerOfCompany = await Company.updateMany(
       { $pull: { owners: idUser } },
     );
-    console.log('usre deleted en el caso de que sea owner de una company');
-    console.log(deleteIfIsOwnerOfCompany.nModified);
     if (deleteIfIsOwnerOfCompany.nModified > 0) {
       const deleteCompanyIfNotHaveOwner = await Company.deleteMany(
         { owners: { $exists: true, $size: 0 } },
@@ -86,10 +78,7 @@ router.delete('/delete', async (req, res, next) => {
       { $or: [{ clients: idUser }, { owners: idUser }] },
       { $pull: { owners: idUser, clients: idUser } },
     );
-    console.log('usre deleted en el caso de que forme parte de establishment(client/owner) ');
     const deleteBookingsOfUserRemoved = await Booking.deleteMany({ idUser });
-    console.log('usre deleted bookings');
-
     req.session.destroy();
     return res.json(deleteUser);
   } catch (error) {

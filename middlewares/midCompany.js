@@ -2,7 +2,6 @@
 const Establishment = require('../models/Establishment');
 const Company = require('../models/Company');
 
-// Como aprovechar esto para establishment y no tener que hacer 2 diferentes?
 // control for allow delete companay only for the owners
 const checkIfUserIsOwner = async (req, res, next) => {
   const IDuser = req.session.currentUser._id;

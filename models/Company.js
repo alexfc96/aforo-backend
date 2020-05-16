@@ -9,10 +9,6 @@ const companySchema = new Schema(
     owners: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     shareClientsInAllEstablishments: { type: Boolean },
     establishments: [{ type: Schema.Types.ObjectId, ref: 'Establishment' }],
-    // establishments: {
-    //   type: [Schema.Types.ObjectId],
-    //   ref: 'Establishment',
-    // },
   },
   {
     timestamps: {

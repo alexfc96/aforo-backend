@@ -3,7 +3,7 @@ const Establishment = require('../models/Establishment');
 const Company = require('../models/Company');
 require('dotenv').config();
 
-// comprobar si el tanto por ciento de personas permitidas es menor al indicado en el .env cuando un owner de un establishment establece este campo
+// check if the percentage of allowed people is less than the one indicated in the .env when an owner of an establishment sets this field 
 const checkIfPercentIsAllowedByLaw = async (req, res, next) => {
   const maximumPercentOfPeopleAllowedByLaw = process.env.MAX_PERCENT;
   const { capacity } = req.body;
@@ -14,7 +14,7 @@ const checkIfPercentIsAllowedByLaw = async (req, res, next) => {
   }
 };
 
-// comprobar si hay espacio en el espacio de tiempo que intenta reservar el usuario
+// check if there is space in the time span the user is trying to book
 // darle una vuelta de nuevo cuando reciba date. entonces crear tantas franjas de tiempo como tiempo máximo esté permitido.
 const checkIfIsPossibleBook = async (req, res, next) => {
   const { idEstablishment } = req.params;
@@ -22,8 +22,10 @@ const checkIfIsPossibleBook = async (req, res, next) => {
 
   const establishment = await Establishment.findById(idEstablishment);
   const { maximumCapacity, percentOfPeopleAllowed } = establishment.capacity;
-  const percentOfUsersAllowedInTheEstablishmentInCertainTime = Math.round((maximumCapacity * percentOfPeopleAllowed) / 100);
-  console.log(percentOfUsersAllowedInTheEstablishmentInCertainTime);
+  const percentOfUsersAllowedInTheEstablishmentInCertainTime = Math.round(
+    (maximumCapacity * percentOfPeopleAllowed) / 100,
+  );
+  //console.log(percentOfUsersAllowedInTheEstablishmentInCertainTime);
 
   const { timeAllowedPerBooking } = establishment.timetable;
 
@@ -43,7 +45,8 @@ const checkIfHourIsAllowed = async (req, res, next) => {
     const establishment = await Establishment.findById(idEstablishment);
     if (establishment) {
       // console.log('OBJETO', establishment);
-      if (startTime < establishment.timetable.startHourShift || endingTime > establishment.timetable.finalHourShift) {
+      if (startTime < establishment.timetable.startHourShift
+        || endingTime > establishment.timetable.finalHourShift) {
         // res.locals.hours = req.body;
         next();
       } else {
@@ -73,21 +76,20 @@ const checkIfTimeChosedByTheUserIsAllowed = async (req, res, next) => {
   }
 };
 
-// Como aprovechar esto para establishment y no tener que hacer 2 diferentes?
 // control for allow delete companay only for the owners
 const checkIfUserIsOwnerOfCompanyForCreateEstablishments = async (req, res, next) => {
   const IDuser = req.session.currentUser._id;
   const { company } = req.body;
   try {
-    const findCompanyByName = await Company.findOne( // buscamos la compañia que ha seleccionado el admin para vincular el establishment
+    // we look for the company that the admin has selected to link the establishment
+    const findCompanyByName = await Company.findOne(
       { name: company },
     );
     const infoOfCompany = await Company.findById(findCompanyByName._id);
     if (infoOfCompany.owners.includes(IDuser)) {
-      // console.log(infoOfCompany);
       res.locals.dataCompany = infoOfCompany;
       next();
-    } else { // si no pongo el else se muestra siempre el unauthorized. Porque? el next no es como un return?
+    } else {
       return res.json('Unauthorized');
     }
   } catch (error) {
@@ -128,31 +130,24 @@ const checkIfUserCanBooking = async (req, res, next) => {
   }
 };
 
+//no funciona!
 const checkIfNameOfEstablishmentExists = async (req, res, next) => {
   const { _id: companyID } = res.locals.dataCompany;
   // console.log(companyID);
   const { name } = req.body;
-  let exist = false;
+  const exist = false;
   try {
     const getCompany = await Company.findById(companyID);
-    // const getEstablishments = await Company.findById(companyID).populate('establishments');
     const { establishments } = getCompany;
 
-    const printEstablishments = async () => {
-      establishments.forEach(async (establishment) => {
-        console.log(establishment);
-        const serachNameOfEstablishment = await Establishment.findById(establishment);
-        // console.log(serachNameOfEstablishment)
-        if (serachNameOfEstablishment.name === name) {
-          console.log("Ese nombre ya está cogido");
-          exist = true;
-        }
-      });
-    };
-    console.log("antes del asyn")
-    await printEstablishments();//si aquií pongo antes el async me peta.
-    console.log("debería esperar")
-    
+    const getEstablishments = await Company.findById(companyID).populate('establishments');
+    console.log(getEstablishments);
+
+    // if (serachNameOfEstablishment.name === name) {
+    //   console.log("Ese nombre ya está cogido");
+    //   exist = true;
+    // }
+
     if (!exist) {
       next();
     } else {
@@ -163,7 +158,27 @@ const checkIfNameOfEstablishmentExists = async (req, res, next) => {
   }
 };
 
+//func (create establishment)
+async function createEstablishment(body, dataCompany, clients) {
+  const {
+    name, capacity, description, address, timetable,
+  } = body;
+  const { _id: companyID, owners } = dataCompany;
+  const newEstablishment = await Establishment.create({
+    name, capacity, description, address, timetable, owners, clients, company: companyID,
+    // link to the company because is possible that the owner could have more than once company
+  });
+  // linked establishment to the company
+  const addEstablishmentToCompany = await Company.findOneAndUpdate(
+    { _id: companyID }, { $push: { establishments: newEstablishment._id } },
+  );
+  console.log(newEstablishment);
+  return newEstablishment;
+}
+
+
 module.exports = {
+  createEstablishment,
   checkIfNameOfEstablishmentExists,
   checkIfIsPossibleBook,
   checkIfPercentIsAllowedByLaw,
