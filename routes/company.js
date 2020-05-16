@@ -108,13 +108,7 @@ router.delete('/:idCompany', checkIfUserIsOwner, async (req, res, next) => {
     const deleteBookings = await Booking.deleteMany(
       { idEstablishment: establishments },
     );
-<<<<<<< HEAD
-    console.log("genial")
-
-    return res.send("Company deleted succesfully");
-=======
     return res.json("Company deleted succesfully");
->>>>>>> dev
   } catch (error) {
     console.log(error);
   }
