@@ -19,8 +19,7 @@ router.get('/companies', async (req, res, next) => {
   try {
     //esto tendré que cambiar en vez de finone que saque todas las companies que tengo
     const doIHaveACompany = await Company.find({ owners: idUser });
-    if(!doIHaveACompany.length === 0){
-      console.log(doIHaveACompany)
+    if(doIHaveACompany.length > 0){
       return res.json(doIHaveACompany);
     } else{
       const amIaClientOfACompany = await Establishment.find(
@@ -33,12 +32,13 @@ router.get('/companies', async (req, res, next) => {
             idCompanies.push(establishment.company)
           }
         });
-        console.log(idCompanies)
+        // console.log(idCompanies)
         const findCompanies = await Company.findById(idCompanies);
         return res.json(findCompanies);
       };
     }
-    return res.json("It seems that you dont have a company associated");
+    //en caso de que no haya nada como enviar y que el front reciba un codigo de los que establecí?
+    // return res.json("It seems that you dont have a company associated");
   } catch (error) {
     console.log(error);
   }

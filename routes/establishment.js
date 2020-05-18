@@ -19,6 +19,21 @@ router.use(checkIfLoggedIn);
 // 	demo: 'Welcome this route is protected',
 // });
 
+//check if i have or i am joined in a company
+router.get('/establishments', async (req, res, next) => {
+  const idUser = req.session.currentUser._id;
+  try {
+    const amIaClientOfEstablishment = await Establishment.find(
+      { $or: [{ clients: idUser }, { owners: idUser }] }
+      // .populate('company')  despues de una condicion peta?
+      );
+    return res.json(amIaClientOfEstablishment);
+  } 
+  catch (error) {
+    console.log(error);
+  }
+});
+
 // create a new Establishment
 //falta el checkIfNameOfEstablishmentExists,
 router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
