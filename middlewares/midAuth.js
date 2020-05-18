@@ -10,9 +10,9 @@ const checkIfLoggedIn = (req, res, next) => {
 };
 
 const checkUsernameAndPasswordNotEmpty = (req, res, next) => {
-  const { username, password } = req.body;
+  const { username, password, mail } = req.body;
 
-  if (username !== '' && password !== '') {
+  if (username !== '' && password !== '' && mail!== '') {
     res.locals.auth = req.body;
     next();
   } else {

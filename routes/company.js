@@ -13,6 +13,37 @@ const router = express.Router();
 router.use(checkIfLoggedIn); // obliga a estar logueado
 // luego tendremos que indicar que solo lo puedan hacerlo los usuarios admins.
 
+//check if i have or i am joined in a company
+router.get('/companies', async (req, res, next) => {
+  const idUser = req.session.currentUser._id;
+  try {
+    //esto tendré que cambiar en vez de finone que saque todas las companies que tengo
+    const doIHaveACompany = await Company.find({ owners: idUser });
+    if(!doIHaveACompany.length === 0){
+      console.log(doIHaveACompany)
+      return res.json(doIHaveACompany);
+    } else{
+      const amIaClientOfACompany = await Establishment.find(
+        { $or: [{ clients: idUser }, { owners: idUser }] }
+        );
+      if(amIaClientOfACompany.length > 0){
+        const idCompanies = []
+        amIaClientOfACompany.forEach(establishment => {
+          if(!idCompanies.includes(establishment.company)){  //me repite el id cuando esto debería de limitarlo
+            idCompanies.push(establishment.company)
+          }
+        });
+        console.log(idCompanies)
+        const findCompanies = await Company.findById(idCompanies);
+        return res.json(findCompanies);
+      };
+    }
+    return res.json("It seems that you dont have a company associated");
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 // create a new company
 router.post('/create', async (req, res, next) => {
   const IDowner = req.session.currentUser._id;
