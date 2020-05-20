@@ -34,6 +34,21 @@ router.get('/establishments', async (req, res, next) => {
   }
 });
 
+//check if i have bookings
+router.get('/bookings', async (req, res, next) => {
+  console.log("entro bookings")
+  const idUser = req.session.currentUser._id;
+  try {
+    const haveIBookings = await Booking.find({ idUser }
+      // .populate('company')  despues de una condicion peta?
+      );
+    return res.json(haveIBookings);
+  } 
+  catch (error) {
+    console.log(error);
+  }
+});
+
 // create a new Establishment
 //falta el checkIfNameOfEstablishmentExists,
 router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
