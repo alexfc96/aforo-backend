@@ -52,7 +52,6 @@ router.get('/bookings', async (req, res, next) => {
 // create a new Establishment
 //falta el checkIfNameOfEstablishmentExists,
 router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
-  console.log('entro');
   const { _id: companyID } = res.locals.dataCompany;
   try {
     const getCompany = await Company.findById(companyID);

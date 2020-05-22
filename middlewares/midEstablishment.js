@@ -141,7 +141,7 @@ const checkIfNameOfEstablishmentExists = async (req, res, next) => {
     const { establishments } = getCompany;
 
     const getEstablishments = await Company.findById(companyID).populate('establishments');
-    console.log(getEstablishments);
+    // console.log(getEstablishments);
 
     // if (serachNameOfEstablishment.name === name) {
     //   console.log("Ese nombre ya está cogido");
