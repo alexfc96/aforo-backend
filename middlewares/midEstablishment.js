@@ -39,18 +39,18 @@ const checkIfIsPossibleBook = async (req, res, next) => {
 
 // cuando tenga el front y me pasen las horas ya haremos:
 const checkIfHourIsAllowed = async (req, res, next) => {
-  const { startTime, endingTime } = req.body;
+  const { startHour } = req.body;
   const { idEstablishment } = req.params;
   try {
     const establishment = await Establishment.findById(idEstablishment);
     if (establishment) {
-      // console.log('OBJETO', establishment);
-      if (startTime < establishment.timetable.startHourShift
-        || endingTime > establishment.timetable.finalHourShift) {
+      if (startHour < establishment.timetable.startHourShift
+        || startHour > establishment.timetable.finalHourShift) {
+        res.status(422).json({ code: 'Hour selected not allowed' });
+
+      } else {
         // res.locals.hours = req.body;
         next();
-      } else {
-        res.status(422).json({ code: 'Hour selected not allowed' });
       }
     }
   } catch (error) {
@@ -59,17 +59,16 @@ const checkIfHourIsAllowed = async (req, res, next) => {
 };
 
 // cuando tenga el front y me pasen las horas ya haremos:
-const checkIfTimeChosedByTheUserIsAllowed = async (req, res, next) => {
-  const { startTime, endingTime } = req.body;
-  const totalTime = endingTime - startTime;
+const checkIfDurationChosedByTheUserIsAllowed = async (req, res, next) => {
+  const { duration } = req.body;
   const { idEstablishment } = req.params;
   try {
     const establishment = await Establishment.findById(idEstablishment);
-    if (totalTime <= establishment.timetable.timeAllowedPerBooking) {
+    if (duration <= establishment.timetable.timeAllowedPerBooking) {
       // res.locals.hours = req.body;
       next();
     } else {
-      res.status(422).json({ code: 'Incorrect time limit' });
+      res.status(422).json({ code: 'The duration of the booking exceed the limit' });
     }
   } catch (error) {
     res.status(422).json({ code: 'Object fail' });
@@ -181,6 +180,6 @@ module.exports = {
   checkIfUserCanBooking,
   checkIfHourIsAllowed,
   checkIfUserIsOwnerOfCompanyForCreateEstablishments,
-  checkIfTimeChosedByTheUserIsAllowed,
+  checkIfDurationChosedByTheUserIsAllowed,
   checkIfUserIsOwnerEstablishment,
 };

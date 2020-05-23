@@ -12,8 +12,8 @@ const establishmentSchema = new Schema(
     },
     address: String,
     timetable: {
-      startHourShift: { type: Number, required: true },
-      finalHourShift: { type: Number, required: true },
+      startHourShift: { type: String, required: true },
+      finalHourShift: { type: String, required: true },
       timeAllowedPerBooking: { type: Number, required: true },
     },
     company: { type: Schema.Types.ObjectId, ref: 'Company', required: true, trim:true },
