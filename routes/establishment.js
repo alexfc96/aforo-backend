@@ -39,9 +39,9 @@ router.get('/bookings', async (req, res, next) => {
   console.log("entro bookings")
   const idUser = req.session.currentUser._id;
   try {
-    const haveIBookings = await Booking.find({ idUser }
-      // .populate('company')  despues de una condicion peta?
-      );
+    const haveIBookings = await Booking
+      .find({ idUser })
+      // .populate('idEstablishment');
     return res.json(haveIBookings);
   } 
   catch (error) {
@@ -58,6 +58,8 @@ router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, check
     if (getCompany.shareClientsInAllEstablishments && getCompany.establishments.length > 0) {
       const getOneEstablishment = await Establishment.findById(getCompany.establishments[0]);
       const { clients } = getOneEstablishment;
+      // console.log('req.body',req.body)
+      // console.log()
       const newEstablishment = await createEstablishment(req.body, res.locals.dataCompany, clients);
       return res.json(newEstablishment);
     }
@@ -73,8 +75,9 @@ router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, check
 router.get('/:idEstablishment', async (req, res, next) => {
   const { idEstablishment } = req.params;
   try {
-    const showEstablishment = await Establishment.findById(idEstablishment);
+    const showEstablishment = await Establishment.findById(idEstablishment)
     // .populate('establishments');
+    console.log("estab", showEstablishment.company)
     return res.json(showEstablishment);
   } catch (error) {
     console.log(error);

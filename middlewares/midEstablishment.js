@@ -172,7 +172,7 @@ async function createEstablishment(body, dataCompany, clients) {
   const addEstablishmentToCompany = await Company.findOneAndUpdate(
     { _id: companyID }, { $push: { establishments: newEstablishment._id } },
   );
-  console.log(newEstablishment);
+  // console.log(newEstablishment);
   return newEstablishment;
 }
 

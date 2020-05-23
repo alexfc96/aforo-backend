@@ -16,10 +16,10 @@ const establishmentSchema = new Schema(
       finalHourShift: { type: Number, required: true },
       timeAllowedPerBooking: { type: Number, required: true },
     },
-    company: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
-    owners: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    company: { type: Schema.Types.ObjectId, ref: 'Company', required: true, trim:true },
+    owners: [{ type: Schema.Types.ObjectId, ref: 'User', trim:true }],
     //workers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    clients: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    clients: [{ type: Schema.Types.ObjectId, ref: 'User', trim:true }],
   },
   {
     timestamps: {
