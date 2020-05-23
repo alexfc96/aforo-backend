@@ -11,13 +11,11 @@ const Booking = require('../models/Booking');
 const router = express.Router();
 
 router.use(checkIfLoggedIn); // obliga a estar logueado
-// luego tendremos que indicar que solo lo puedan hacerlo los usuarios admins.
 
 //check if i have or i am joined in a company
 router.get('/companies', async (req, res, next) => {
   const idUser = req.session.currentUser._id;
   try {
-    //esto tendré que cambiar en vez de finone que saque todas las companies que tengo
     const doIHaveACompany = await Company.find({ owners: idUser });
     if(doIHaveACompany.length > 0){
       return res.json(doIHaveACompany);

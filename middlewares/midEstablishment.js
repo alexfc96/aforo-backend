@@ -88,6 +88,7 @@ const checkIfUserIsOwnerOfCompanyForCreateEstablishments = async (req, res, next
     const infoOfCompany = await Company.findById(findCompanyByName._id);
     if (infoOfCompany.owners.includes(IDuser)) {
       res.locals.dataCompany = infoOfCompany;
+      console.log("pasamos el primer midd")
       next();
     } else {
       return res.json('Unauthorized');
@@ -168,11 +169,6 @@ async function createEstablishment(body, dataCompany, clients) {
     name, capacity, description, address, timetable, owners, clients, company: companyID,
     // link to the company because is possible that the owner could have more than once company
   });
-  // linked establishment to the company
-  const addEstablishmentToCompany = await Company.findOneAndUpdate(
-    { _id: companyID }, { $push: { establishments: newEstablishment._id } },
-  );
-  // console.log(newEstablishment);
   return newEstablishment;
 }
 

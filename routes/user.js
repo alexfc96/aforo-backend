@@ -19,8 +19,11 @@ router.use(checkIfLoggedIn);
 // show the info of User only by his mail
 router.get('/by-mail', async (req, res, next) => {
   const { mail } = req.body;
+  console.log("body",req.body)
+  console.log('mail:',mail)
   try {
     const getUser = await User.findOne({mail});
+    console.log(getUser)
     return res.json(getUser);
   } catch (error) {
     console.log(error);

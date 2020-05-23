@@ -25,8 +25,7 @@ router.get('/establishments', async (req, res, next) => {
   try {
     const amIaClientOfEstablishment = await Establishment.find(
       { $or: [{ clients: idUser }, { owners: idUser }] }
-      // .populate('company')  despues de una condicion peta?
-      );
+      ).populate('company');
     return res.json(amIaClientOfEstablishment);
   } 
   catch (error) {
@@ -41,7 +40,7 @@ router.get('/bookings', async (req, res, next) => {
   try {
     const haveIBookings = await Booking
       .find({ idUser })
-      // .populate('idEstablishment');
+      .populate('idEstablishment');
     return res.json(haveIBookings);
   } 
   catch (error) {
@@ -53,13 +52,13 @@ router.get('/bookings', async (req, res, next) => {
 //falta el checkIfNameOfEstablishmentExists,
 router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
   const { _id: companyID } = res.locals.dataCompany;
+  console.log("sigo vivo")
   try {
     const getCompany = await Company.findById(companyID);
-    if (getCompany.shareClientsInAllEstablishments && getCompany.establishments.length > 0) {
-      const getOneEstablishment = await Establishment.findById(getCompany.establishments[0]);
+    const getEstablishmentWithTheSameCompany = await Establishment.find({company:getCompany._id})
+    if (getCompany.shareClientsInAllEstablishments && getEstablishmentWithTheSameCompany.length > 0) {
+      const getOneEstablishment = await Establishment.findOne({company:getCompany._id});
       const { clients } = getOneEstablishment;
-      // console.log('req.body',req.body)
-      // console.log()
       const newEstablishment = await createEstablishment(req.body, res.locals.dataCompany, clients);
       return res.json(newEstablishment);
     }
@@ -71,13 +70,24 @@ router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, check
   }
 });
 
+//give the establishments associated to company
+router.get('/by-company/:idCompany', async (req, res, next) => {
+  const { idCompany } = req.params;
+  console.log(idCompany)
+  try {
+    const getEstablishmentsOfOneCompany = await Establishment.find({ company: idCompany });
+    return res.json(getEstablishmentsOfOneCompany);
+  } 
+  catch (error) {
+    console.log(error);
+  }
+});
+
 // show the info of a Establishment
 router.get('/:idEstablishment', async (req, res, next) => {
   const { idEstablishment } = req.params;
   try {
-    const showEstablishment = await Establishment.findById(idEstablishment)
-    // .populate('establishments');
-    console.log("estab", showEstablishment.company)
+    const showEstablishment = await Establishment.findById(idEstablishment).populate('company owners');
     return res.json(showEstablishment);
   } catch (error) {
     console.log(error);
@@ -107,10 +117,7 @@ router.delete('/:idEstablishment', checkIfUserIsOwnerOfCompany, async (req, res,
   const { idEstablishment } = req.params;
   try {
     const deleteEstablishment = await Establishment.findByIdAndDelete(idEstablishment);
-    const { _id: establishmentId, company } = deleteEstablishment;
-    const deleteEstablishmentOfCompany = await Company.findOneAndUpdate(
-      { _id: company }, { $pull: { establishments: establishmentId } },
-    );
+    const { _id: establishmentId } = deleteEstablishment;
     const deleteBookingsOfEstablishment = await Booking.deleteMany(
       { idEstablishment: establishmentId },
     );
@@ -128,8 +135,10 @@ router.post('/:idEstablishment/join-client/:idClient', checkIfUserIsOwnerEstabli
     if (!infoEstablishment.clients.includes(idClient)) {
       const getCompany = await Company.findById(infoEstablishment.company);
       if (getCompany.shareClientsInAllEstablishments) {
+        const getEstablishmentWithTheSameCompany = await Establishment.find({company:infoEstablishment.company})
+        console.log("all the establisghments of the company", getEstablishmentWithTheSameCompany )
         const addClientToAllEstablishments = await Establishment.updateMany(
-          { _id: getCompany.establishments }, { $push: { clients: idClient } },
+          { _id: { $in: getEstablishmentWithTheSameCompany } }, { $push: { clients: idClient } },
         );
         return res.json(addClientToAllEstablishments);
       }
@@ -204,10 +213,11 @@ router.post('/:idEstablishment/booking', checkIfUserCanBooking, checkIfTimeChose
   const idUser = req.session.currentUser._id;
   const { startTime, endingTime } = req.body;
   try {
-    const createBooking = await Booking.create({
+    const createBooking = new Booking({
       idUser, idEstablishment, startTime, endingTime,
     });
-    return res.json(createBooking);
+    const newBooking = await createBooking.save()
+    return res.json(newBooking);
   } catch (error) {
     console.log(error);
   }
