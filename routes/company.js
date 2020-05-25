@@ -31,7 +31,7 @@ router.get('/companies', async (req, res, next) => {
           }
         });
         // console.log(idCompanies)
-        const findCompanies = await Company.findById(idCompanies);
+        const findCompanies = await Company.find({ _id: { $in: idCompanies }});
         return res.json(findCompanies);
       };
     }
