@@ -7,7 +7,7 @@ const userSchema = new Schema(
     name: { type: String, required: true},
     username: { type: String, required: true, unique: true },
     hashedPassword: { type: String, required: true },
-    mail: { type: String, required: true, unique: true },
+    mail: { type: String, required: true, unique: true }, //cambiarlo a email.
     years: Number,
     //role: ['Admin', 'client'],
   },

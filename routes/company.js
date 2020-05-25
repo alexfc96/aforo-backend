@@ -62,7 +62,7 @@ router.get('/:idCompany', async (req, res, next) => {
   const { idCompany } = req.params;
   console.log(req.params);
   try {
-    const showCompany = await Company.findById(idCompany);
+    const showCompany = await Company.findById(idCompany).populate('owners');
     return res.json(showCompany);
   } catch (error) {
     console.log(error);

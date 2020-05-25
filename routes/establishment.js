@@ -73,10 +73,21 @@ router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, check
 //give the establishments associated to company
 router.get('/by-company/:idCompany', async (req, res, next) => {
   const { idCompany } = req.params;
-  console.log(idCompany)
   try {
-    const getEstablishmentsOfOneCompany = await Establishment.find({ company: idCompany });
-    return res.json(getEstablishmentsOfOneCompany);
+    const getEstablishmentsByIdCompany = await Establishment.find({ company: idCompany });
+    return res.json(getEstablishmentsByIdCompany);
+  } 
+  catch (error) {
+    console.log(error);
+  }
+});
+
+//give the establishments associated by name
+router.get('/by-name/:name', async (req, res, next) => {
+  const { name } = req.params;
+  try {
+    const getEstablishmentsByName = await Establishment.find({ name });
+    return res.json(getEstablishmentsByName);
   } 
   catch (error) {
     console.log(error);
@@ -87,7 +98,7 @@ router.get('/by-company/:idCompany', async (req, res, next) => {
 router.get('/:idEstablishment', async (req, res, next) => {
   const { idEstablishment } = req.params;
   try {
-    const showEstablishment = await Establishment.findById(idEstablishment).populate('company owners');
+    const showEstablishment = await Establishment.findById(idEstablishment).populate('company owners clients');
     return res.json(showEstablishment);
   } catch (error) {
     console.log(error);
