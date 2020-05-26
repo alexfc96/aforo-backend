@@ -1,6 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 const Establishment = require('../models/Establishment');
 const Company = require('../models/Company');
+const Booking = require('../models/Booking');
 require('dotenv').config();
 
 // check if the percentage of allowed people is less than the one indicated in the .env when an owner of an establishment sets this field 
@@ -15,25 +16,47 @@ const checkIfPercentIsAllowedByLaw = async (req, res, next) => {
 };
 
 // check if there is space in the time span the user is trying to book
-// darle una vuelta de nuevo cuando reciba date. entonces crear tantas franjas de tiempo como tiempo máximo esté permitido.
+// crear tantas franjas de tiempo como tiempo máximo esté permitido.
 const checkIfIsPossibleBook = async (req, res, next) => {
   const { idEstablishment } = req.params;
-  // const { startTime, endingTime } = req.body;
+  let { day, startHour, duration } = req.body;
+  duration = parseInt(duration) //pasamos la duration a number
+  console.log("Los datos que recibo en el body son", req.body)
+  const dateParsed = new Date(day); //parseamos la fecha pàra que tenga el mismo modelo que el de la bbdd
 
   const establishment = await Establishment.findById(idEstablishment);
   const { maximumCapacity, percentOfPeopleAllowed } = establishment.capacity;
+  let { timeAllowedPerBooking } = establishment.timetable;
+  timeAllowedPerBooking = parseInt(timeAllowedPerBooking) //pasamos la timeAllowed a number
+  console.log("time allowed",timeAllowedPerBooking)
   const percentOfUsersAllowedInTheEstablishmentInCertainTime = Math.round(
     (maximumCapacity * percentOfPeopleAllowed) / 100,
   );
-  //console.log(percentOfUsersAllowedInTheEstablishmentInCertainTime);
+  // console.log("el numero total de personas en un determinado espacio de tiempo son:",percentOfUsersAllowedInTheEstablishmentInCertainTime);
+  const findBookingsByDay = await Booking.find({ day: dateParsed, idEstablishment})//encontramos los que coinciden.
+  console.log("bookings que coinciden en dia", findBookingsByDay)
+  let countBookings = 0;
+  findBookingsByDay.map((booking)=>{
+    // booking.startHour = booking.startHour.split(':');
+    console.log("booking starthour:", booking.startHour);
+    //saber si lo que ha introducido el usuario cumple con el hotario
+    //por ejempo si lo ha puesto a las 10.20 hasta las 11 perf porque está denrto de la misma sesion-
+    // let timeRest = timeAllowedPerBooking - duration;
+    // console.log("resta dela operacion:", timeRest)
+    // booking.startHour = booking.startHour - timeRest;
+    // console.log("Finalmente ha quedado redondeado a :", booking.startHour)
 
-  const { timeAllowedPerBooking } = establishment.timetable;
-
-  // persona y tiempo
-  if (capacity.percentOfPeopleAllowed > percentOfUsersAllowedInTheEstablishmentInCertainTime) {
-    res.status(422).json({ code: 'The specified percentage exceeds that stipulated by law.' });
+    if(booking.startHour === '09:00'){
+      countBookings= countBookings +1;
+    }
+    // timeAllowedPerBooking
+    //apartir de la startHour empieza a mirar por cada timeAllowed per booking cuantas reservas
+  })
+  console.log("numero total de usuarios en la primera sesion del dia", countBookings)
+  if(countBookings<percentOfUsersAllowedInTheEstablishmentInCertainTime){
+    next()
   } else {
-    next();
+    res.status(422).json({ code: 'The capacity is superada' });
   }
 };
 

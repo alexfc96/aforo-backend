@@ -72,10 +72,10 @@ router.get('/:idCompany', async (req, res, next) => {
 //admin data company
 router.put('/:idCompany/admin', checkIfUserIsOwner, async (req, res, next) => {
   const { idCompany } = req.params;
-  const { name, description } = req.body;
+  const { name, description, shareClientsInAllEstablishments } = req.body;
   try {
     const modifyCompany = await Company.findByIdAndUpdate(
-      { _id: idCompany }, { name, description },
+      { _id: idCompany }, { name, description, shareClientsInAllEstablishments },
     );
     return res.json(modifyCompany);
   } catch (error) {

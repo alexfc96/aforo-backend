@@ -4,7 +4,7 @@ const { checkIfLoggedIn } = require('../middlewares/midAuth');
 const { checkIfUserIsOwnerOfCompany } = require('../middlewares/midCompany');
 const {
   checkIfHourIsAllowed, createEstablishment, checkIfUserCanBooking, checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfNameOfEstablishmentExists, checkIfPercentIsAllowedByLaw, checkIfDurationChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment,
-} = require('../middlewares/midEstablishment');
+  checkIfIsPossibleBook } = require('../middlewares/midEstablishment');
 
 // const User = require('../models/User');
 const Company = require('../models/Company');
@@ -219,12 +219,11 @@ router.delete('/:idEstablishment/remove-owner/:idowner', checkIfUserIsOwnerOfCom
 
 // book hour in establishment
 // cuando recibamos dates volver a mirar el middleware  checkIfIsPossibleBook,
-//demomento quitamos los middlewares para probar el nuevo sistema!!: checkIfUserCanBooking, checkIfTimeChosedByTheUserIsAllowed, checkIfHourIsAllowed,
-router.post('/:idEstablishment/booking', checkIfUserCanBooking, checkIfDurationChosedByTheUserIsAllowed, checkIfHourIsAllowed,  async (req, res, next) => {
+router.post('/:idEstablishment/booking', checkIfUserCanBooking, checkIfDurationChosedByTheUserIsAllowed, checkIfHourIsAllowed, checkIfIsPossibleBook, async (req, res, next) => {
   const { idEstablishment } = req.params;
   const idUser = req.session.currentUser._id;
   const { day, startHour, duration } = req.body;
-  console.log('mostrar datos para hacer el boooking', req.body)
+  // console.log('mostrar datos para hacer el boooking', req.body)
   try {
     const createBooking = new Booking({
       idUser, idEstablishment, day, startHour, duration
