@@ -94,6 +94,23 @@ router.get('/by-name/:name', async (req, res, next) => {
   }
 });
 
+//give the bookings associated to a establishment in one determinate day
+router.post('/get-bookings-by-day/:idEstablishment', async (req, res, next) => {
+  const { idEstablishment } = req.params;
+  const { day } = req.body;
+  const dateParsed = new Date(day)
+  // console.log("date parsed", dateParsed)
+  try {
+    const findBookingsByDay = await Booking.find({ day: dateParsed, idEstablishment})//encontramos los que coinciden.
+    console.log(findBookingsByDay)
+    return res.json(findBookingsByDay);
+  } 
+  catch (error) {
+    console.log(error);
+  }
+});
+
+
 // show the info of a Establishment
 router.get('/:idEstablishment', async (req, res, next) => {
   const { idEstablishment } = req.params;
@@ -219,14 +236,15 @@ router.delete('/:idEstablishment/remove-owner/:idowner', checkIfUserIsOwnerOfCom
 
 // book hour in establishment
 // cuando recibamos dates volver a mirar el middleware  checkIfIsPossibleBook,
-router.post('/:idEstablishment/booking', checkIfUserCanBooking, checkIfDurationChosedByTheUserIsAllowed, checkIfHourIsAllowed, checkIfIsPossibleBook, async (req, res, next) => {
+//al quitar el duration para las pruebas quittamos el middleware , checkIfHourIsAllowed, checkIfDurationChosedByTheUserIsAllowed
+router.post('/:idEstablishment/booking', checkIfUserCanBooking, checkIfHourIsAllowed, async (req, res, next) => {
   const { idEstablishment } = req.params;
   const idUser = req.session.currentUser._id;
-  const { day, startHour, duration } = req.body;
+  const { day, startHour } = req.body;
   // console.log('mostrar datos para hacer el boooking', req.body)
   try {
     const createBooking = new Booking({
-      idUser, idEstablishment, day, startHour, duration
+      idUser, idEstablishment, day, startHour
     });
     const newBooking = await createBooking.save()
     return res.json(newBooking);
