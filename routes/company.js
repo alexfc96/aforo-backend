@@ -12,31 +12,39 @@ const router = express.Router();
 
 router.use(checkIfLoggedIn); // obliga a estar logueado
 
-//check if i have or i am joined in a company
-router.get('/companies', async (req, res, next) => {
+
+//check if i have companies(owner)
+router.get('/my-companies', async (req, res, next) => {
   const idUser = req.session.currentUser._id;
   try {
     const doIHaveACompany = await Company.find({ owners: idUser });
     if(doIHaveACompany.length > 0){
       return res.json(doIHaveACompany);
-    } else{
-      const amIaClientOfACompany = await Establishment.find(
-        { $or: [{ clients: idUser }, { owners: idUser }] }
-        );
-      if(amIaClientOfACompany.length > 0){
-        const idCompanies = []
-        amIaClientOfACompany.forEach(establishment => {
-          if(!idCompanies.includes(establishment.company)){  //me repite el id cuando esto debería de limitarlo
-            idCompanies.push(establishment.company)
-          }
-        });
-        // console.log(idCompanies)
-        const findCompanies = await Company.find({ _id: { $in: idCompanies }});
-        return res.json(findCompanies);
-      };
-    }
-    //en caso de que no haya nada como enviar y que el front reciba un codigo de los que establecí?
-    // return res.json("It seems that you dont have a company associated");
+    }}
+  catch (error) {
+    console.log(error);
+  }
+});
+
+
+//check if i am joined in a company
+router.get('/companies', async (req, res, next) => {
+  const idUser = req.session.currentUser._id;
+  try {
+    const amIaClientOfACompany = await Establishment.find(
+      { $or: [{ clients: idUser }, { owners: idUser }] }
+      );
+    if(amIaClientOfACompany.length > 0){
+      const idCompanies = []
+      amIaClientOfACompany.forEach(establishment => {
+        if(!idCompanies.includes(establishment.company)){  //me repite el id cuando esto debería de limitarlo
+          idCompanies.push(establishment.company)
+        }
+      });
+      // console.log(idCompanies)
+      const findCompanies = await Company.find({ _id: { $in: idCompanies }});
+      return res.json(findCompanies);
+    };
   } catch (error) {
     console.log(error);
   }
