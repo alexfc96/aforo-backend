@@ -4,7 +4,7 @@ const { checkIfLoggedIn } = require('../middlewares/midAuth');
 const { checkIfUserIsOwnerOfCompany } = require('../middlewares/midCompany');
 const {
   checkIfHourIsAllowed, createEstablishment, checkIfUserCanBooking, checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfNameOfEstablishmentExists, checkIfPercentIsAllowedByLaw, checkIfDurationChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment,
-  checkIfIsPossibleBook } = require('../middlewares/midEstablishment');
+  checkIfIsPossibleBook, orderByDate, orderByDateReverse } = require('../middlewares/midEstablishment');
 
 // const User = require('../models/User');
 const Company = require('../models/Company');
@@ -35,12 +35,33 @@ router.get('/establishments', async (req, res, next) => {
 
 //check if i have bookings
 router.get('/bookings', async (req, res, next) => {
-  console.log("entro bookings")
   const idUser = req.session.currentUser._id;
+  const yesterday = new Date(new Date().setDate(new Date().getDate() - 1));
   try {
     const haveIBookings = await Booking
-      .find({ idUser })
+      .find({ day: { $gte: yesterday }, idUser })
       .populate('idEstablishment');
+    
+    await orderByDate(haveIBookings);
+    console.log("sorted",haveIBookings)
+    return res.json(haveIBookings);
+  } 
+  catch (error) {
+    console.log(error);
+  }
+});
+
+//check if i have OLD bookings
+router.get('/old-bookings', async (req, res, next) => {
+  const idUser = req.session.currentUser._id;
+  const today = new Date(new Date().setDate(new Date().getDate()));
+  try {
+    const haveIBookings = await Booking
+      .find({ day: { $lte: today }, idUser })
+      .populate('idEstablishment');
+    
+    await orderByDateReverse(haveIBookings);
+    console.log("sorted",haveIBookings)
     return res.json(haveIBookings);
   } 
   catch (error) {

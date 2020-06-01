@@ -226,6 +226,22 @@ async function createEstablishment(body, dataCompany, clients) {
   return newEstablishment;
 }
 
+async function orderByDate(array) {
+  array.sort((a, b) => {
+    a = new Date(a.day);
+    b = new Date(b.day);
+    return a > b ? 1 : a < b ? -1 : 0;
+  });
+}
+
+async function orderByDateReverse(array) {
+  array.sort((a, b) => {
+    a = new Date(a.day);
+    b = new Date(b.day);
+    return a < b ? 1 : a > b ? -1 : 0;
+  });
+}
+
 
 module.exports = {
   createEstablishment,
@@ -237,4 +253,6 @@ module.exports = {
   checkIfUserIsOwnerOfCompanyForCreateEstablishments,
   checkIfDurationChosedByTheUserIsAllowed,
   checkIfUserIsOwnerEstablishment,
+  orderByDate,
+  orderByDateReverse
 };
