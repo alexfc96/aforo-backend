@@ -21,8 +21,8 @@ const checkIfIsPossibleBook = async (req, res, next) => {
   const { idEstablishment } = req.params;
 
   //check if the user is owner of the establishemnt because they can book without restrictions
-  const establishemnt = await Establishment.findById(idEstablishment);
-  if (establishemnt.owners.includes(IDuser)) {
+  const establishment = await Establishment.findById(idEstablishment);
+  if (establishment.owners.includes(IDuser)) {
     next();
   } else {
     let { day } = req.body;
