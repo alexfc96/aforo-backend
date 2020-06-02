@@ -15,6 +15,7 @@ const establishmentSchema = new Schema(
       startHourShift: { type: String, required: true },
       finalHourShift: { type: String, required: true },
       timeAllowedPerBooking: { type: Number, required: true },
+      howOftenCanBookPerDay: { type: Number, required: true },
     },
     company: { type: Schema.Types.ObjectId, ref: 'Company', required: true, trim:true },
     owners: [{ type: Schema.Types.ObjectId, ref: 'User', trim:true }],

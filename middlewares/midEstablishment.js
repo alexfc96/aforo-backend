@@ -16,79 +16,28 @@ const checkIfPercentIsAllowedByLaw = async (req, res, next) => {
 };
 
 // check if there is space in the time span the user is trying to book
-// crear tantas franjas de tiempo como tiempo máximo esté permitido.
 const checkIfIsPossibleBook = async (req, res, next) => {
+  const IDuser = req.session.currentUser._id;
   const { idEstablishment } = req.params;
-  let { day, startHour, duration } = req.body;
-  duration = parseInt(duration) //pasamos la duration a number
-  console.log("Los datos que recibo en el body son", req.body)
-  const dateParsed = new Date(day); //parseamos la fecha pàra que tenga el mismo modelo que el de la bbdd
 
-  const establishment = await Establishment.findById(idEstablishment);
-  console.log("Los datos que tiene el establishment son", establishment.timetable)
-  const { maximumCapacity, percentOfPeopleAllowed } = establishment.capacity;
-  let { timeAllowedPerBooking, startHourShift, finalHourShift } = establishment.timetable;
-  timeAllowedPerBooking = parseInt(timeAllowedPerBooking) //pasamos la timeAllowed a number
-  console.log("time allowed",timeAllowedPerBooking)
-  const percentOfUsersAllowedInTheEstablishmentInCertainTime = Math.round(  //sacamos el numero total de usuarios que se van a permitir por sesión.
-    (maximumCapacity * percentOfPeopleAllowed) / 100,
-  );
-
-    //saber los inicios de cada sesion de tiempo. para ello tenemos que encontrar los multiplos de horas hasta que cierra el local.
-    console.log("la jornada empieza alas",startHourShift);
-    startHourShift = parseInt(startHourShift)//los pasamos a minutos
-    finalHourShift = parseInt(finalHourShift)//los pasamos a minutos
-
-    //sabemos cuantas sesiones van a estar permitidas durante la jornada especificada en ese estableciemiento.(puede ser que no nos haga falta.)
-    const horasAbierto = finalHourShift-startHourShift
-    console.log("horas abierto", horasAbierto)
-    const sesionesTotales = (horasAbierto*60)/timeAllowedPerBooking;
-    console.log("sesiones totales", sesionesTotales)
-
-    // temp = startHourShift.split(':');
-    // console.log("me quedo con los minutos de la startHourShift del establishment", temp[1]);
-    // minutesOfEstablishment = parseInt(temp[1])//los pasamos a minutos
-    // const listOfIniciosDeSesionDeTiemposDisponibles = [];
-    // for (let index = 0; index < sesionesTotales; index++) {
-    //   minutesOfEstablishment = minutesOfEstablishment + timeAllowedPerBooking;
-    //   listOfIniciosDeSesionDeTiemposDisponibles.push(minutesOfEstablishment)
-    // }
-    console.log("lista que me devuelve",listOfIniciosDeSesionDeTiemposDisponibles)
-    // let cont = startHourShift;
-    // while (cont < finalHourShift) {
-    //   cont = cont + timeAllowedPerBooking;  //aqui hay que pensar en el tiempo. si es mas de 59 pasa de hora.
-    //   listOfIniciosDeSesionDeTiemposDisponibles.push(cont)
-    //   console.log("lista de inicios de sesion", listOfIniciosDeSesionDeTiemposDisponibles)
-    // }
-
-  console.log("el numero total de personas permitidas en un determinado espacio de tiempo en este establecimiento son:",percentOfUsersAllowedInTheEstablishmentInCertainTime);
-  const findBookingsByDay = await Booking.find({ day: dateParsed, idEstablishment})//encontramos los que coinciden.
-  console.log("bookings que coinciden en dia", findBookingsByDay)
-  let countBookings = 0;
-  findBookingsByDay.map((booking)=>{ //con esto recorremos todas las bookings de ese dia buscando que hayan empezado en la misma sesion
-    // punto = booking.startHour.split(':');
-    // console.log("me quedo con los minutos de la startHur introducido por el usuario:", punto[1]);
-    // minutesOfBooking = parseInt(punto[1])//los pasamos a minutos
-    // console.log("minutos en numero(alomejor esto no hace falta)",minutesOfBooking)
-    // //creo que puede ser una idea luego desde el front obligar al usuario que ponga la duration maxima permitida apartir de la hora que reserva.
-    // suma = minutesOfBooking + duration
-    // console.log("la suma de los minutos entre que entra y la duracion es", suma)
-    // resta = suma - timeAllowedPerBooking;
-    // console.log("el resultado de la resta entre los minutos que ha puesto y los permitidos son", resta)
-
-    //falta comprobar si el resultado de esta ultima operacion se considera un tiempo de inicio de sesion: 9.00, 9.20, 9.40
-    //en ese caso cuenta que está bien y el contador suma
-    if(booking.startHour === '09:00'){
-      countBookings= countBookings +1;
-    }
-    // timeAllowedPerBooking
-    //apartir de la startHour empieza a mirar por cada timeAllowed per booking cuantas reservas
-  })
-  console.log("numero total de usuarios en la primera sesion del dia", countBookings)
-  if(countBookings<percentOfUsersAllowedInTheEstablishmentInCertainTime){
-    next()
+  //check if the user is owner of the establishemnt because they can book without restrictions
+  const establishemnt = await Establishment.findById(idEstablishment);
+  if (establishemnt.owners.includes(IDuser)) {
+    next();
   } else {
-    res.status(422).json({ code: 'The capacity is superada' });
+    let { day } = req.body;
+    const dateParsed = new Date(day); //parseamos la fecha pàra que tenga el mismo modelo que el de la bbdd
+    let { howOftenCanBookPerDay } = establishment.timetable;
+  
+    const bookingInThisDay = await Booking.find({ day: dateParsed, idUser: IDuser, idEstablishment })
+    // console.log("mostramos las bookings de ese usuario ese dia en ese establishment", bookingInThisDay)
+    // console.log("numero de reservas en ese dia",bookingInThisDay.length)
+  
+    if(bookingInThisDay.length<howOftenCanBookPerDay){
+      next()
+    } else {
+      res.status(422).json({ code: 'You have exceeded the maximum number of reservations in one day.' });
+    }
   }
 };
 

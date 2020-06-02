@@ -43,7 +43,6 @@ router.get('/bookings', async (req, res, next) => {
       .populate('idEstablishment');
     
     await orderByDate(haveIBookings);
-    console.log("sorted",haveIBookings)
     return res.json(haveIBookings);
   } 
   catch (error) {
@@ -123,7 +122,7 @@ router.post('/get-bookings-by-day/:idEstablishment', async (req, res, next) => {
   // console.log("date parsed", dateParsed)
   try {
     const findBookingsByDay = await Booking.find({ day: dateParsed, idEstablishment})//encontramos los que coinciden.
-    console.log(findBookingsByDay)
+    // console.log(findBookingsByDay)
     return res.json(findBookingsByDay);
   } 
   catch (error) {
@@ -258,7 +257,7 @@ router.delete('/:idEstablishment/remove-owner/:idowner', checkIfUserIsOwnerOfCom
 // book hour in establishment
 // cuando recibamos dates volver a mirar el middleware  checkIfIsPossibleBook,
 //al quitar el duration para las pruebas quittamos el middleware , checkIfHourIsAllowed, checkIfDurationChosedByTheUserIsAllowed
-router.post('/:idEstablishment/booking', checkIfUserCanBooking, checkIfHourIsAllowed, async (req, res, next) => {
+router.post('/:idEstablishment/booking', checkIfUserCanBooking, checkIfHourIsAllowed, checkIfIsPossibleBook, async (req, res, next) => {
   const { idEstablishment } = req.params;
   const idUser = req.session.currentUser._id;
   const { day, startHour } = req.body;
