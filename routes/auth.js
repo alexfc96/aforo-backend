@@ -41,13 +41,16 @@ router.post('/login', checkUsernameAndPasswordNotEmpty, async (req, res, next) =
   try {
     const user = await User.findOne({ username });
     if (!user) {
-      return res.status(404).json({ code: 'not-found' });
+      console.log("entrooo 1")
+      return res.status(401).json({ code: 'not-found' });
     }
     if (bcrypt.compareSync(password, user.hashedPassword)) {
       req.session.currentUser = user;
       return res.json(user);
+    } else{
+      console.log("entrooo")
+      return res.status(404).json({ code: 'not-found' });
     }
-    return res.status(404).json({ code: 'not-found' });
   } catch (error) {
     next(error);
   }

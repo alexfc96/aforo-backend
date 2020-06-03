@@ -33,7 +33,23 @@ router.get('/establishments', async (req, res, next) => {
   }
 });
 
-//check if i have bookings
+//get all the bookings bookings
+router.get('/all-bookings', async (req, res, next) => {
+  const idUser = req.session.currentUser._id;
+  try {
+    const haveIBookings = await Booking
+      .find({ idUser })
+      .populate('idEstablishment');
+    
+    await orderByDate(haveIBookings);
+    return res.json(haveIBookings);
+  } 
+  catch (error) {
+    console.log(error);
+  }
+});
+
+//check if i have current bookings
 router.get('/bookings', async (req, res, next) => {
   const idUser = req.session.currentUser._id;
   const yesterday = new Date(new Date().setDate(new Date().getDate() - 1));
@@ -103,10 +119,10 @@ router.get('/by-company/:idCompany', async (req, res, next) => {
 });
 
 //give the establishments associated by name
-router.get('/by-name/:name', async (req, res, next) => {
-  const { name } = req.params;
+router.post('/by-name', async (req, res, next) => {
+  const { input } = req.body;
   try {
-    const getEstablishmentsByName = await Establishment.find({ name });
+    const getEstablishmentsByName = await Establishment.find({ name: new RegExp(input, 'i') });
     return res.json(getEstablishmentsByName);
   } 
   catch (error) {
