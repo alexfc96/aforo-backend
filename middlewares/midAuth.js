@@ -35,6 +35,19 @@ const checkUsernameAndPasswordNotEmpty = (req, res, next) => {
 //   }
 // };
 
+const checkTheLengthOfPassword = (req, res, next) => {
+  const { password } = req.body;
+  try {
+    if (password.length>5) {
+      next();
+    } else {
+      return res.json('The password requires at least 6 characters');
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 const checkIfMailExists = async (req, res, next) => {
   const { mail } = req.body;
   try {
@@ -54,5 +67,6 @@ module.exports = {
   checkIfLoggedIn,
   checkUsernameAndPasswordNotEmpty,
   // checkIsIfMail,
+  checkTheLengthOfPassword,
   checkIfMailExists,
 };

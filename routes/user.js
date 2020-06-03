@@ -39,13 +39,17 @@ router.get('/:idUser', async (req, res, next) => {
 });
 
 // otro para saber si yo soy yo y me puedo eliminar.
-router.put('/:idUser/update', checkIfMailExists, async (req, res, next) => {
+checkIfMailExists,
+router.put('/:idUser/update',  async (req, res, next) => {
   const {
     name, years, mail, currentPassword, newPassword,
   } = req.body;
+  console.log(req.body)
   const IDuser = req.session.currentUser._id;
+  console.log("currentPasword", currentPassword)
   try {
     const updateDataUser = await User.findByIdAndUpdate({ _id: IDuser }, { name, years, mail });
+    console.log(updateDataUser)
     if (!currentPassword || !newPassword) {
       return res.json(updateDataUser);
     } else {
