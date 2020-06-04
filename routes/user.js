@@ -31,7 +31,7 @@ router.get('/by-mail/:mail', async (req, res, next) => {
 router.get('/:idUser', async (req, res, next) => {
   const { idUser } = req.params;
   try {
-    const getUser = await User.findById(idUser);
+    const getUser = await User.findById(idUser).populate('favoriteEstablishments');
     return res.json(getUser);
   } catch (error) {
     console.log(error);
