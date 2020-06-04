@@ -146,6 +146,18 @@ router.post('/get-bookings-by-day/:idEstablishment', async (req, res, next) => {
   }
 });
 
+//give the users associated to a establishment in one determinate session
+router.post('/:idEstablishment/get-users-of-session', async (req, res, next) => {
+  const { idEstablishment } = req.params;
+  const { session } = req.body;
+  try {
+    const findBookingsBySession = await Booking.find({ startHour: session, idEstablishment}).populate('idUser');
+    return res.json(findBookingsBySession);
+  } 
+  catch (error) {
+    console.log(error);
+  }
+});
 
 // show the info of a Establishment
 router.get('/:idEstablishment', async (req, res, next) => {
