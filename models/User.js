@@ -9,7 +9,7 @@ const userSchema = new Schema(
     hashedPassword: { type: String, required: true },
     mail: { type: String, required: true, unique: true }, //cambiarlo a email.
     years: Number,
-    //role: ['Admin', 'client'],
+    favoriteEstablishments: [{ type: Schema.Types.ObjectId, ref: 'Establishment' }]
   },
   {
     timestamps: {

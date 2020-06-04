@@ -6,7 +6,7 @@ const {
   checkIfHourIsAllowed, createEstablishment, checkIfUserCanBooking, checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfNameOfEstablishmentExists, checkIfPercentIsAllowedByLaw, checkIfDurationChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment,
   checkIfIsPossibleBook, orderByDate, orderByDateReverse } = require('../middlewares/midEstablishment');
 
-// const User = require('../models/User');
+const User = require('../models/User');
 const Company = require('../models/Company');
 const Establishment = require('../models/Establishment');
 const Booking = require('../models/Booking');
@@ -307,6 +307,40 @@ router.get('/:idEstablishment/booking/:idBooking', async (req, res, next) => {
   try {
     const showBooking = await Booking.findById(idBooking);
     return res.json(showBooking);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+//put the establishment in the favourites of the user(only if you are user)
+router.post('/:idEstablishment/favorite', checkIfUserCanBooking,  async (req, res, next) => {
+  const { idEstablishment } = req.params;
+  const idUser = req.session.currentUser._id;
+  try {
+    const selectUser = await User.findById(idUser);
+    if (!selectUser.favoriteEstablishments.includes(idEstablishment)) {
+      const addEstablishmentOnFavorites = await User.findOneAndUpdate(
+        { _id: idUser }, { $push: { favoriteEstablishments: idEstablishment } },
+      );
+      return res.json(addEstablishmentOnFavorites);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+//delete the establishment of the favourites of the user
+router.post('/:idEstablishment/remove-favorite',  async (req, res, next) => {
+  const { idEstablishment } = req.params;
+  const idUser = req.session.currentUser._id;
+  try {
+    const selectUser = await User.findById(idUser);
+    if (selectUser.favoriteEstablishments.includes(idEstablishment)) {
+      const removeEstablishmentOnFavorites = await User.findOneAndUpdate(
+        { _id: idUser }, { $pull: { favoriteEstablishments: idEstablishment } },
+      );
+      return res.json(removeEstablishmentOnFavorites);
+    }
   } catch (error) {
     console.log(error);
   }
