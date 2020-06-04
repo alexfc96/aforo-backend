@@ -238,7 +238,14 @@ router.delete('/:idEstablishment/remove-client/:idClient', checkIfUserIsOwnerEst
       const removeClientOfEstablishment = await Establishment.findOneAndUpdate(
         { _id: idEstablishment }, { $pull: { clients: idClient } },
       );
-      const deleteBookingsOfClienteRemoved = await Booking.deleteMany({ idUser: idClient }); // Revisado que si no tiene bookings aquí no da error.
+      const deleteBookingsOfClienteRemoved = await Booking.deleteMany({ idUser: idClient, idEstablishment }); // Revisado que si no tiene bookings aquí no da error.
+      const selectUser = await User.findById(idClient);
+      if (selectUser.favoriteEstablishments.includes(idEstablishment)) {
+        const removeEstablishmentOnFavorites = await User.findOneAndUpdate(
+          { _id: idClient }, { $pull: { favoriteEstablishments: idEstablishment } },
+        );
+        // return res.json(removeEstablishmentOnFavorites);
+      }
       return res.json(removeClientOfEstablishment);
     }
     return res.json('This user is not client of this establishment');
@@ -273,7 +280,14 @@ router.delete('/:idEstablishment/remove-owner/:idowner', checkIfUserIsOwnerOfCom
       const removeownerOfEstablishment = await Establishment.findOneAndUpdate(
         { _id: idEstablishment }, { $pull: { owners: idowner } },
       );
-      const deleteBookingsOfOwners = await Booking.deleteMany({ idUser: idowner });
+      const deleteBookingsOfOwners = await Booking.deleteMany({ idUser: idowner, idEstablishment });
+      const selectUser = await User.findById(idowner);
+      if (selectUser.favoriteEstablishments.includes(idEstablishment)) {
+        const removeEstablishmentOnFavorites = await User.findOneAndUpdate(
+          { _id: idowner }, { $pull: { favoriteEstablishments: idEstablishment } },
+        );
+        // return res.json(removeEstablishmentOnFavorites);
+      }
       return res.json(removeownerOfEstablishment);
     }
     return res.json('This user is not owner of this establishment');
