@@ -7,7 +7,7 @@ const userSchema = new Schema(
     name: { type: String, required: true},
     username: { type: String, required: true, unique: true },
     hashedPassword: { type: String, required: true },
-    mail: { type: String, required: true, unique: true }, //cambiarlo a email.
+    mail: { type: String, required: true, unique: true },
     years: Number,
     favoriteEstablishments: [{ type: Schema.Types.ObjectId, ref: 'Establishment' }]
   },

@@ -19,7 +19,6 @@ const establishmentSchema = new Schema(
     },
     company: { type: Schema.Types.ObjectId, ref: 'Company', required: true, trim:true },
     owners: [{ type: Schema.Types.ObjectId, ref: 'User', trim:true }],
-    //workers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     clients: [{ type: Schema.Types.ObjectId, ref: 'User', trim:true }],
   },
   {

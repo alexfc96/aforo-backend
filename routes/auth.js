@@ -22,7 +22,7 @@ router.post('/signup', checkUsernameAndPasswordNotEmpty, checkTheLengthOfPasswor
   try {
     const user = await User.findOne({ username });
     if (user) {
-      return res.status(422).json({ code: 'username-not-unique' }); // si el usuario ya existe en la bbdd error
+      return res.status(422).json({ code: 'username-not-unique' }); // if already exists
     }
     console.log('New user ', username);
     const salt = bcrypt.genSaltSync(bcryptSalt);

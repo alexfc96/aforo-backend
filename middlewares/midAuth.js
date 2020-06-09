@@ -20,21 +20,6 @@ const checkUsernameAndPasswordNotEmpty = (req, res, next) => {
   }
 };
 
-//MIRAR ESTOO
-// const checkIsIfMail = async (req, res, next) => {
-//   const { mail } = req.body;
-//   try {
-//     if (/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/(mail)) {
-//       console.log("mail correcto")
-//       next();
-//     } else {
-//       return res.json('Email format incorrect');
-//     }
-//   } catch (error) {
-//     console.log(error);
-//   }
-// };
-
 const checkTheLengthOfPassword = (req, res, next) => {
   const { password } = req.body;
   try {
@@ -52,11 +37,10 @@ const checkIfMailExists = async (req, res, next) => {
   const { mail } = req.body;
   try {
     const findMail = await User.findOne({ mail });
-    // console.log(findMail);
     if (!findMail) {
       next();
     } else {
-      return res.json('This mail is already created');//poner statuss
+      return res.json('This mail is already created');
     }
   } catch (error) {
     console.log(error);
@@ -66,7 +50,6 @@ const checkIfMailExists = async (req, res, next) => {
 module.exports = {
   checkIfLoggedIn,
   checkUsernameAndPasswordNotEmpty,
-  // checkIsIfMail,
   checkTheLengthOfPassword,
   checkIfMailExists,
 };

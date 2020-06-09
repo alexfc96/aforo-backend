@@ -3,7 +3,7 @@ const express = require('express');
 const { checkIfLoggedIn } = require('../middlewares/midAuth');
 const { checkIfUserIsOwnerOfCompany } = require('../middlewares/midCompany');
 const {
-  checkIfHourIsAllowed, createEstablishment, checkIfUserCanBooking, checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfNameOfEstablishmentExists, checkIfPercentIsAllowedByLaw, checkIfDurationChosedByTheUserIsAllowed, checkIfUserIsOwnerEstablishment,
+  checkIfHourIsAllowed, createEstablishment, checkIfUserCanBooking, checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfPercentIsAllowedByLaw, checkIfUserIsOwnerEstablishment,
   checkIfIsPossibleBook, orderByDate, orderByDateReverse } = require('../middlewares/midEstablishment');
 
 const User = require('../models/User');
@@ -15,11 +15,7 @@ const router = express.Router();
 
 router.use(checkIfLoggedIn);
 
-// res.status(200).json({
-// 	demo: 'Welcome this route is protected',
-// });
-
-//check if i have or i am joined in a company
+//check if i have or i am joined in a establishment
 router.get('/establishments', async (req, res, next) => {
   const idUser = req.session.currentUser._id;
   try {
@@ -85,10 +81,8 @@ router.get('/old-bookings', async (req, res, next) => {
 });
 
 // create a new Establishment
-//falta el checkIfNameOfEstablishmentExists,
 router.post('/create', checkIfUserIsOwnerOfCompanyForCreateEstablishments, checkIfPercentIsAllowedByLaw, async (req, res, next) => {
   const { _id: companyID } = res.locals.dataCompany;
-  console.log("sigo vivo")
   try {
     const getCompany = await Company.findById(companyID);
     const getEstablishmentWithTheSameCompany = await Establishment.find({company:getCompany._id})
@@ -135,10 +129,8 @@ router.post('/get-bookings-by-day/:idEstablishment', async (req, res, next) => {
   const { idEstablishment } = req.params;
   const { day } = req.body;
   const dateParsed = new Date(day)
-  // console.log("date parsed", dateParsed)
   try {
-    const findBookingsByDay = await Booking.find({ day: dateParsed, idEstablishment})//encontramos los que coinciden.
-    // console.log(findBookingsByDay)
+    const findBookingsByDay = await Booking.find({ day: dateParsed, idEstablishment})//found the bookings in the day selected.
     return res.json(findBookingsByDay);
   } 
   catch (error) {
@@ -149,9 +141,10 @@ router.post('/get-bookings-by-day/:idEstablishment', async (req, res, next) => {
 //give the users associated to a establishment in one determinate session
 router.post('/:idEstablishment/get-users-of-session', async (req, res, next) => {
   const { idEstablishment } = req.params;
-  const { session } = req.body;
+  const { session, day } = req.body;
+
   try {
-    const findBookingsBySession = await Booking.find({ startHour: session, idEstablishment}).populate('idUser');
+    const findBookingsBySession = await Booking.find({ day, startHour: session, idEstablishment}).populate('idUser');
     return res.json(findBookingsBySession);
   } 
   catch (error) {
@@ -230,7 +223,7 @@ router.post('/:idEstablishment/join-client/:idClient', checkIfUserIsOwnerEstabli
 });
 
 // remove clients of establishment
-router.delete('/:idEstablishment/remove-client/:idClient', checkIfUserIsOwnerEstablishment, async (req, res, next) => { // creo que aquí hará falta poner otra query con el id del cliente que queremos tratar.
+router.delete('/:idEstablishment/remove-client/:idClient', checkIfUserIsOwnerEstablishment, async (req, res, next) => {
   const { idEstablishment, idClient } = req.params;
   try {
     const infoEstablishment = await Establishment.findById(idEstablishment);
@@ -238,13 +231,12 @@ router.delete('/:idEstablishment/remove-client/:idClient', checkIfUserIsOwnerEst
       const removeClientOfEstablishment = await Establishment.findOneAndUpdate(
         { _id: idEstablishment }, { $pull: { clients: idClient } },
       );
-      const deleteBookingsOfClienteRemoved = await Booking.deleteMany({ idUser: idClient, idEstablishment }); // Revisado que si no tiene bookings aquí no da error.
+      const deleteBookingsOfClienteRemoved = await Booking.deleteMany({ idUser: idClient, idEstablishment }); //deleteBookingsOfTheClient.
       const selectUser = await User.findById(idClient);
       if (selectUser.favoriteEstablishments.includes(idEstablishment)) {
         const removeEstablishmentOnFavorites = await User.findOneAndUpdate(
           { _id: idClient }, { $pull: { favoriteEstablishments: idEstablishment } },
         );
-        // return res.json(removeEstablishmentOnFavorites);
       }
       return res.json(removeClientOfEstablishment);
     }
@@ -286,7 +278,6 @@ router.delete('/:idEstablishment/remove-owner/:idowner', checkIfUserIsOwnerOfCom
         const removeEstablishmentOnFavorites = await User.findOneAndUpdate(
           { _id: idowner }, { $pull: { favoriteEstablishments: idEstablishment } },
         );
-        // return res.json(removeEstablishmentOnFavorites);
       }
       return res.json(removeownerOfEstablishment);
     }
@@ -297,13 +288,10 @@ router.delete('/:idEstablishment/remove-owner/:idowner', checkIfUserIsOwnerOfCom
 });
 
 // book hour in establishment
-// cuando recibamos dates volver a mirar el middleware  checkIfIsPossibleBook,
-//al quitar el duration para las pruebas quittamos el middleware , checkIfHourIsAllowed, checkIfDurationChosedByTheUserIsAllowed
 router.post('/:idEstablishment/booking', checkIfUserCanBooking, checkIfHourIsAllowed, checkIfIsPossibleBook, async (req, res, next) => {
   const { idEstablishment } = req.params;
   const idUser = req.session.currentUser._id;
   const { day, startHour } = req.body;
-  // console.log('mostrar datos para hacer el boooking', req.body)
   try {
     const createBooking = new Booking({
       idUser, idEstablishment, day, startHour
@@ -363,7 +351,6 @@ router.post('/:idEstablishment/remove-favorite',  async (req, res, next) => {
 // delete booking in establishment
 router.delete('/:idEstablishment/delete-booking/:idBooking', async (req, res, next) => {
   const { idBooking } = req.params;
-  // const idUser = req.session.currentUser._id;
   try {
     const deleteBooking = await Booking.findByIdAndDelete(idBooking);
     return res.json(deleteBooking);
@@ -373,8 +360,3 @@ router.delete('/:idEstablishment/delete-booking/:idBooking', async (req, res, ne
 });
 
 module.exports = router;
-
-
-// res.status(200).json({
-// 	demo: 'Welcome this route is protected',
-// });

@@ -10,7 +10,7 @@ const Booking = require('../models/Booking');
 
 const router = express.Router();
 
-router.use(checkIfLoggedIn); // obliga a estar logueado
+router.use(checkIfLoggedIn); // forces to be logged
 
 
 //check if i have companies(owner)
@@ -31,13 +31,13 @@ router.get('/my-companies', async (req, res, next) => {
 router.get('/companies', async (req, res, next) => {
   const idUser = req.session.currentUser._id;
   try {
-    const amIaClientOfACompany = await Establishment.find(
+    const amIaClientOfACompany = await Establishment.find( 
       { $or: [{ clients: idUser }, { owners: idUser }] }
       );
     if(amIaClientOfACompany.length > 0){
       const idCompanies = []
       amIaClientOfACompany.forEach(establishment => {
-        if(!idCompanies.includes(establishment.company)){  //me repite el id cuando esto debería de limitarlo
+        if(!idCompanies.includes(establishment.company)){
           idCompanies.push(establishment.company)
         }
       });
@@ -92,7 +92,6 @@ router.put('/:idCompany/admin', checkIfUserIsOwner, async (req, res, next) => {
 });
 
 // join owner to company
-//pensar medidas de seguridad
 router.post('/:idCompany/join-owner/:idOwner', async (req, res, next) => {
   const { idCompany, idOwner } = req.params;
   try {
@@ -152,8 +151,3 @@ router.delete('/:idCompany', checkIfUserIsOwner, async (req, res, next) => {
 });
 
 module.exports = router;
-
-
-// res.status(200).json({
-// 	demo: 'Welcome this route is protected',
-// });

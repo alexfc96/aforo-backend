@@ -5,7 +5,7 @@
   AFORO
 
 ## Description
-  Web app that allows you to register your company or establishment and limit access to your companies following the state of alarm laws established by the government.
+Web app that allows you to register your company and establishments to limit the access establishing a percentage of people allowed in a certain period of time. Once the establishments have been created and you have invited the clients, they will be able to join the available sessions that we have scheduled.
 
 ## User Stories
 
@@ -76,22 +76,26 @@
 
     -Name: String (unique)
     -Description: String
-    -Establishments: Ver si esto da para otro modelo(englobar varias sucursales de una sola compañia para que esta tenga control sobre todas )-> Backlog?
     -Owner: IDUser Array of owners of the company
+    -ShareClientsInAllEstablishments  //allows share the clients in all the establishments of this company
 
   Establishment
 
     -IDEstablishment
-    -Capacity: Number
+    -Capacity: {
+      maximumCapacity: { type: Number },
+      percentOfPeopleAllowed: { type: Number },
+    },
     -Address: String / Mapbox
     -Timetable: {
-      startHourShift: { type: Number, required: true },
-      finalHourShift: { type: Number, required: true },
-      timeAllowedPerBooking: { type: Number, required: true },
+      startHourShift: { type: Number },
+      finalHourShift: { type: Number },
+      timeAllowedPerBooking: { type: Number },
+      howOftenCanBookPerDay: { type: Number },
     }
-    -Company??
-    -Owner: IDUser Array of owners of the company
-    -Clients: Array with tbe IDusers invited by the company
+    company: { ref: 'Company'}, //IDCompany
+    owners: [{ ref: 'User' }],  //IDUser
+    clients: [{ ref: 'User' }], //IDUser
 
   User
 
@@ -100,42 +104,45 @@
     -HashedPassword:
     -Years: Number
     -Mail: Mail
-    -Role: [Admin, client]
-    //-Companies: IDCompany (the user can be linked in more than 1 company)
+    -FavoriteEstablishments: [{ ref: 'Establishment' }] //IDEstablishment
 
   Booking
 
-    -IDEstablishment
-    -IDUser
-    -EndDate
-    -StartDate
+    idUser: { ref: 'User' },
+    idEstablishment: { ref: 'Establishment' },
+    day: { type: Date, required: true, min: '2020-01-01', max: '2025-01-01' },
+    startHour: { type: String, required: true },
+    timeBetweenBookings: { type: Number },
+
 
 ## Backlog
 
   ​List of other features outside of the MVPs scope:
 
-  -​User profile: - see my profile - upload my profile picture - update my profile info
-
-  -Homepage: - Show the different bussines where the user can book hour
-
   -Add notifications
+
+  -Create public establishments
 
   -Invite via mail
   ​
-  -Geo Location: - add geolocation of the bussines.
-
-  -Add different users who can see the information about the users that will assist to the establishment.
+  -Geo Location: - add geolocation of the establishments.
 
 ## Links
 
-  **Git**
+  **Backend Repo Git**
   ​​ https://github.com/alexfc96/aforo-backend
+
   **Frontend Repo Git**
+  ​​ https://github.com/alexfc96/aforo-frontend
   
   **Trello**
   ​ https://trello.com/b/TW4KSt9j/aforo
+
+  **Deploy backend by Heroku**
+  https://aforo-api.herokuapp.com/
 
   ​**Deploy by Heroku**
   https://aforo.herokuapp.com/
 
   **Slides**
+  https://slides.com/alexfernandez-1/aforo/

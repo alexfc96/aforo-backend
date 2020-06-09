@@ -8,9 +8,7 @@ const bookingSchema = new Schema(
     idEstablishment: { type: Schema.Types.ObjectId, ref: 'Establishment', trim:true},
     day: { type: Date, required: true, min: '2020-01-01', max: '2025-01-01' },
     startHour: { type: String, required: true },
-    // duration: { type: Number, required: true },
     timeBetweenBookings: { type: Number },
-    //controlar numero maximo de bookings activas
   },
   {
     timestamps: {

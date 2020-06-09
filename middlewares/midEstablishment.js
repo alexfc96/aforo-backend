@@ -26,12 +26,10 @@ const checkIfIsPossibleBook = async (req, res, next) => {
     next();
   } else {
     let { day } = req.body;
-    const dateParsed = new Date(day); //parseamos la fecha pàra que tenga el mismo modelo que el de la bbdd
+    const dateParsed = new Date(day); //parse date with the same format than the db
     let { howOftenCanBookPerDay } = establishment.timetable;
   
     const bookingInThisDay = await Booking.find({ day: dateParsed, idUser: IDuser, idEstablishment })
-    // console.log("mostramos las bookings de ese usuario ese dia en ese establishment", bookingInThisDay)
-    // console.log("numero de reservas en ese dia",bookingInThisDay.length)
   
     if(bookingInThisDay.length<howOftenCanBookPerDay){
       next()
@@ -41,7 +39,7 @@ const checkIfIsPossibleBook = async (req, res, next) => {
   }
 };
 
-// cuando tenga el front y me pasen las horas ya haremos:
+// check if possible the hour selected:
 const checkIfHourIsAllowed = async (req, res, next) => {
   const { startHour } = req.body;
   const { idEstablishment } = req.params;
@@ -53,26 +51,8 @@ const checkIfHourIsAllowed = async (req, res, next) => {
         res.status(422).json({ code: 'Hour selected not allowed' });
 
       } else {
-        // res.locals.hours = req.body;
         next();
       }
-    }
-  } catch (error) {
-    res.status(422).json({ code: 'Object fail' });
-  }
-};
-
-// cuando tenga el front y me pasen las horas ya haremos:
-const checkIfDurationChosedByTheUserIsAllowed = async (req, res, next) => {
-  const { duration } = req.body;
-  const { idEstablishment } = req.params;
-  try {
-    const establishment = await Establishment.findById(idEstablishment);
-    if (duration <= establishment.timetable.timeAllowedPerBooking) {
-      // res.locals.hours = req.body;
-      next();
-    } else {
-      res.status(422).json({ code: 'The duration of the booking exceed the limit' });
     }
   } catch (error) {
     res.status(422).json({ code: 'Object fail' });
@@ -91,7 +71,6 @@ const checkIfUserIsOwnerOfCompanyForCreateEstablishments = async (req, res, next
     const infoOfCompany = await Company.findById(findCompanyByName._id);
     if (infoOfCompany.owners.includes(IDuser)) {
       res.locals.dataCompany = infoOfCompany;
-      console.log("pasamos el primer midd")
       next();
     } else {
       return res.json('Unauthorized');
@@ -134,34 +113,6 @@ const checkIfUserCanBooking = async (req, res, next) => {
   }
 };
 
-//no funciona!
-const checkIfNameOfEstablishmentExists = async (req, res, next) => {
-  const { _id: companyID } = res.locals.dataCompany;
-  // console.log(companyID);
-  const { name } = req.body;
-  const exist = false;
-  try {
-    const getCompany = await Company.findById(companyID);
-    const { establishments } = getCompany;
-
-    const getEstablishments = await Company.findById(companyID).populate('establishments');
-    // console.log(getEstablishments);
-
-    // if (serachNameOfEstablishment.name === name) {
-    //   console.log("Ese nombre ya está cogido");
-    //   exist = true;
-    // }
-
-    if (!exist) {
-      next();
-    } else {
-      return res.json('This name of establishment is already created');
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 //func (create establishment)
 async function createEstablishment(body, dataCompany, clients) {
   const {
@@ -194,13 +145,11 @@ async function orderByDateReverse(array) {
 
 module.exports = {
   createEstablishment,
-  checkIfNameOfEstablishmentExists,
   checkIfIsPossibleBook,
   checkIfPercentIsAllowedByLaw,
   checkIfUserCanBooking,
   checkIfHourIsAllowed,
   checkIfUserIsOwnerOfCompanyForCreateEstablishments,
-  checkIfDurationChosedByTheUserIsAllowed,
   checkIfUserIsOwnerEstablishment,
   orderByDate,
   orderByDateReverse

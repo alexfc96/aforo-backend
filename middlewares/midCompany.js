@@ -11,7 +11,7 @@ const checkIfUserIsOwner = async (req, res, next) => {
     if (infoCompany.owners.includes(IDuser)) {
       next();
     } else {
-      return res.json('Unauthorized'); //configurar numero de error correspondiente.
+      return res.json('Unauthorized');
     }
   } catch (error) {
     console.log(error);

@@ -8,7 +8,6 @@ const companySchema = new Schema(
     description: String,
     owners: [{ type: Schema.Types.ObjectId, ref: 'User', trim:true }],
     shareClientsInAllEstablishments: { type: Boolean },
-    // establishments: [{ type: Schema.Types.ObjectId, ref: 'Establishment', trim:true }],
   },
   {
     timestamps: {
