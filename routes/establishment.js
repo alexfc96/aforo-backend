@@ -72,7 +72,6 @@ router.get('/old-bookings', async (req, res, next) => {
       .populate('idEstablishment');
     
     await orderByDateReverse(haveIBookings);
-    console.log("sorted",haveIBookings)
     return res.json(haveIBookings);
   } 
   catch (error) {
